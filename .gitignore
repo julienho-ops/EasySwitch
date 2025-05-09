@@ -1,0 +1,8 @@
+examples/*
+dist/*
+easyswitch.egg-info/*
+**/__pycache__/*
+.pypirc
+.venv/*
+Pipfile
+Pipfile.lock
