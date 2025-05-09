@@ -3,15 +3,12 @@ EasySwitch - HTTP Wrapper for API requests
 """
 import json
 import logging
-from typing import Dict, Optional, Any, Union, List
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 from aiohttp import ClientTimeout
 
-from easyswitch.exceptions import (
-    NetworkError, APIError, RateLimitError
-)
-
+from easyswitch.exceptions import APIError, NetworkError, RateLimitError
 
 logger = logging.getLogger("easyswitch.http")
 

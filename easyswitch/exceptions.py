@@ -1,7 +1,7 @@
 """
 EasySwitch - Custom Exceptions
 """
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class EasySwitchError(Exception):

@@ -1,24 +1,18 @@
 import asyncio
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from pathlib import Path
 import json
-import yaml
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+import yaml
 
 from easyswitch.client import EasySwitch
-from easyswitch.types import (
-    PaymentResponse,
-    TransactionStatus,
-    Currency,
-    CustomerInfo,
-    Provider
-)
-from easyswitch.exceptions import (
-    InvalidProviderError,
-    ConfigurationError,
-    PaymentError
-)
+from easyswitch.exceptions import (ConfigurationError, InvalidProviderError,
+                                   PaymentError)
+from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
+                              Provider, TransactionStatus)
+
 
 # Fixtures
 @pytest.fixture

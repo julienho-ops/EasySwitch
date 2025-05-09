@@ -2,33 +2,15 @@
 EasySwitch - Client principal pour l'intégration unifiée des APIs mobile money
 """
 from pathlib import Path
-from typing import (
-    Dict, Optional, Any, ClassVar,
-    Union
-)
+from typing import Any, ClassVar, Dict, Optional, Union
 
-from easyswitch.conf import (
-    RootConfig
-)
-from easyswitch.conf.manager import (
-    ConfigManager
-)
-from easyswitch.exceptions import (
-    InvalidProviderError,
-    ConfigurationError,
-    AuthenticationError
-)
-from easyswitch.types import (
-    PaymentResponse,
-    TransactionStatus,
-    Provider,
-    Currency,
-    CustomerInfo
-)
-from easyswitch.adapters import (
-    AdaptersRegistry,
-    BaseAdapter
-)
+from easyswitch.adapters import AdaptersRegistry, BaseAdapter
+from easyswitch.conf import RootConfig
+from easyswitch.conf.manager import ConfigManager
+from easyswitch.exceptions import (AuthenticationError, ConfigurationError,
+                                   InvalidProviderError)
+from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
+                              Provider, TransactionStatus)
 
 
 ####

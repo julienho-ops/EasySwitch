@@ -3,27 +3,16 @@
 EasySwitch - SEMOA Integrator
 """
 
-from typing import (
-    Dict, Optional, Any, Union, List, ClassVar
-)
+from typing import Any, ClassVar, Dict, List, Optional, Union
 
 from easyswitch.adapters.base import BaseAdapter
 from easyswitch.conf.config import Config
-from easyswitch.exceptions import (
-    PaymentError,
-    AuthenticationError,
-    TransactionNotFoundError,
-    UnsupportedOperationError
-)
-from easyswitch.types import (
-    PaymentResponse,
-    TransactionStatus,
-    Currency,
-    Provider,
-    CustomerInfo,
-    TransactionType,
-    TransactionDetail
-)
+from easyswitch.exceptions import (AuthenticationError, PaymentError,
+                                   TransactionNotFoundError,
+                                   UnsupportedOperationError)
+from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
+                              Provider, TransactionDetail, TransactionStatus,
+                              TransactionType)
 from easyswitch.utils.http import HTTPClient
 
 

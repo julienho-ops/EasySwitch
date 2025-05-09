@@ -1,12 +1,10 @@
 """
 EasySwitch - Utilitaire de journalisation
 """
+import logging
 import os
 import sys
-import logging
-from typing import (
-    Optional, Union, Dict, Any
-)
+from typing import Any, Dict, Optional, Union
 
 
 def setup_logger(

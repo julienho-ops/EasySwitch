@@ -2,11 +2,12 @@
 EasySwitch - Yaml config source loader.
 """
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 import yaml
 
-from easyswitch.conf.base import BaseConfigSource
 from easyswitch.conf import register_source
+from easyswitch.conf.base import BaseConfigSource
 
 
 ####

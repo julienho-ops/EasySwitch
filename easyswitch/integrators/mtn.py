@@ -1,31 +1,22 @@
 """
 EasySwitch - Intégrateur pour MTN Mobile Money
 """
-import uuid
 import base64
 import hashlib
 import hmac
 import json
 import time
+import uuid
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Any, Union, List
+from typing import Any, Dict, List, Optional, Union
 
 from easyswitch.adapters.base import BaseAdapter
 from easyswitch.conf.config import Config
-from easyswitch.exceptions import (
-    APIError,
-    AuthenticationError,
-    TransactionNotFoundError,
-    UnsupportedOperationError
-)
-from easyswitch.types import (
-    PaymentResponse,
-    TransactionStatus,
-    Currency,
-    Provider,
-    CustomerInfo,
-    TransactionType
-)
+from easyswitch.exceptions import (APIError, AuthenticationError,
+                                   TransactionNotFoundError,
+                                   UnsupportedOperationError)
+from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
+                              Provider, TransactionStatus, TransactionType)
 from easyswitch.utils.http import HTTPClient
 
 

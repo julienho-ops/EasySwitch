@@ -1,7 +1,4 @@
-from .base import (
-    AdaptersRegistry,
-    BaseAdapter
-)
+from .base import AdaptersRegistry, BaseAdapter
 
 __all__ = [
     "AdaptersRegistry",

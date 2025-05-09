@@ -2,15 +2,12 @@
 EasySwitch - Configs Management
 """
 import os
-from dotenv import load_dotenv
-from typing import (
-    Dict, Optional, Any, List, Type
-)
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Type
 
-from easyswitch.types import (
-    Provider, ApiCredentials
-)
+from dotenv import load_dotenv
+
+from easyswitch.types import ApiCredentials, Provider
 
 
 @dataclass
