@@ -4,9 +4,10 @@ EasySwitch - Json config source loader.
 
 import json
 from pathlib import Path
-from typing import Dict, Any
-from easyswitch.conf.base import BaseConfigSource
+from typing import Any, Dict
+
 from easyswitch.conf import register_source
+from easyswitch.conf.base import BaseConfigSource
 
 
 ####

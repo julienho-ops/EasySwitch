@@ -3,14 +3,10 @@ EasySwitch - Configs Manager
 """
 
 from pathlib import Path
-from typing import (
-    Dict, Any, List, Optional, Union
-)
+from typing import Any, Dict, List, Optional, Union
 
-from easyswitch.conf.base import (
-    RootConfig, BaseConfigSource
-)
 from easyswitch.conf import get_source
+from easyswitch.conf.base import BaseConfigSource, RootConfig
 from easyswitch.exceptions import ConfigurationError
 
 

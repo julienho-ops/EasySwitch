@@ -1,23 +1,16 @@
-import json
-import hmac
-import pytest
 import hashlib
+import hmac
+import json
 from datetime import datetime
-from unittest.mock import (
-    AsyncMock, MagicMock, patch
-)
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from easyswitch.types import (
-    TransactionDetail,
-    CustomerInfo,
-    Currency,
-    TransactionStatus
-)
-from easyswitch.exceptions import (
-    PaymentError,
-    UnsupportedOperationError
-)
+import pytest
+
+from easyswitch.exceptions import PaymentError, UnsupportedOperationError
 from easyswitch.integrators.cinetpay import CinetpayAdapter
+from easyswitch.types import (Currency, CustomerInfo, TransactionDetail,
+                              TransactionStatus)
+
 
 # Fixtures pour les données de test
 @pytest.fixture

@@ -2,10 +2,10 @@
 EasySwitch - Shared Types and Data Structures.
 """
 import os
-from enum import Enum, auto
-from typing import Dict, Optional, List, Any
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Dict, List, Optional
 
 
 ####

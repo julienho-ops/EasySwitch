@@ -1,10 +1,10 @@
 """
 EasySwitch - Fonctions de validation
 """
-import re
-import hmac
 import hashlib
-from typing import Dict, Any, Optional, Union
+import hmac
+import re
+from typing import Any, Dict, Optional, Union
 
 from easyswitch.exceptions import ValidationError
 

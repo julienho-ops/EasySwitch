@@ -3,14 +3,13 @@ EasySwitch - Env config source loader.
 """
 
 import os
-from typing import (
-    Dict, Any, Optional, List
-)
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
 
-from easyswitch.conf.base import BaseConfigSource
 from easyswitch.conf import register_source
+from easyswitch.conf.base import BaseConfigSource
 
 
 ####

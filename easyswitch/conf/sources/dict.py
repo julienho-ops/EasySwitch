@@ -2,9 +2,10 @@
 EasySwitch - Python dictionnary config source loader.
 """
 
-from typing import Dict, Any
-from easyswitch.conf.base import BaseConfigSource
+from typing import Any, Dict
+
 from easyswitch.conf import register_source
+from easyswitch.conf.base import BaseConfigSource
 
 
 ####

@@ -2,21 +2,16 @@
 EasySwitch - Configs Base
 """
 
-from enum import Enum
 from abc import ABC, abstractmethod
+from enum import Enum
 from pathlib import Path
-from pydantic import (
-    BaseModel, field_validator, Field
-)
-from typing import Dict, Any, Type, Optional
+from typing import Any, Dict, Optional, Type
 
-from easyswitch.types import Provider
-from easyswitch.types import (
-    Currency
-)
-from easyswitch.exceptions import (
-    ConfigurationError
-)
+from pydantic import BaseModel, Field, field_validator
+
+from easyswitch.exceptions import ConfigurationError
+from easyswitch.types import Currency, Provider
+
 
 ####
 ##     LOG LEVELs

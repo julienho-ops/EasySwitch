@@ -1,28 +1,18 @@
 """
 EasySwitch - CinetPay Integrator
 """
-import json, hmac, hashlib
-from typing import (
-    Dict, Optional, Any, List, ClassVar
-)
+import hashlib
+import hmac
+import json
+from typing import Any, ClassVar, Dict, List, Optional
 
 from easyswitch.adapters.base import AdaptersRegistry, BaseAdapter
-from easyswitch.exceptions import (
-    PaymentError,
-    AuthenticationError,
-    UnsupportedOperationError
-)
-from easyswitch.types import (
-    PaymentResponse,
-    TransactionStatus,
-    WebhookEvent,
-    Currency,
-    Provider,
-    CustomerInfo,
-    TransactionType,
-    TransactionDetail,
-    TransactionStatusResponse
-)
+from easyswitch.exceptions import (AuthenticationError, PaymentError,
+                                   UnsupportedOperationError)
+from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
+                              Provider, TransactionDetail, TransactionStatus,
+                              TransactionStatusResponse, TransactionType,
+                              WebhookEvent)
 
 
 ####

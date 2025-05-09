@@ -2,30 +2,17 @@
 EasySwitch - Base Adapter for Payment Integrations
 """
 import abc
-from typing import (
-    ClassVar,Dict, Optional, Any, Union,
-    List, Type
-)
+from typing import Any, ClassVar, Dict, List, Optional, Type, Union
 
 from easyswitch.conf import ProviderConfig
-from easyswitch.exceptions import (
-    InvalidProviderError,
-)
-from easyswitch.types import (
-    PaymentResponse,
-    TransactionStatus,
-    TransactionDetail,
-    Currency,
-    CustomerInfo,
-    ApiCredentials,
-    Provider
-)
+from easyswitch.exceptions import InvalidProviderError
+from easyswitch.types import (ApiCredentials, Currency, CustomerInfo,
+                              PaymentResponse, Provider, TransactionDetail,
+                              TransactionStatus)
 from easyswitch.utils import USER_AGENT
 from easyswitch.utils.http import HTTPClient
-from easyswitch.utils.validators import (
-    validate_currency, validate_amount,
-    validate_phone_number
-)
+from easyswitch.utils.validators import (validate_amount, validate_currency,
+                                         validate_phone_number)
 
 
 ####
