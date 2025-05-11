@@ -101,8 +101,8 @@ class BaseAdapter(abc.ABC):
     VERSION: str = "1.0.0"
     """Adapter version"""
 
-    api_config: Optional[ProviderConfig] = None
-    """API credentials for the adapter."""
+    # api_config: Optional[ProviderConfig] = None
+    # """API credentials for the adapter."""
 
     client: Optional[HTTPClient] = None
     """HTTP client for the adapter."""

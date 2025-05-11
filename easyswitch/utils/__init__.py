@@ -1,4 +1,5 @@
 import platform
+import urllib.parse
 from importlib import metadata
 
 try:
@@ -36,3 +37,15 @@ def parse_phone(number:str, raise_exception = False):
             'country_code': None,
             'national_number': None
         }
+
+# DICT TO QUERY STRING
+def dict_to_encoded_query_string(data: dict) -> str:
+    """Converts a dictt object into a url safe encoded string"""
+    query_string = urllib.parse.urlencode(data)
+    return urllib.parse.quote(query_string)
+
+# QUERY STRING TO DICT
+def encoded_query_string_to_dict(encoded: str) -> dict:
+    """Converts a url safe query str into a dict."""
+    decoded = urllib.parse.unquote(encoded)
+    return dict(urllib.parse.parse_qsl(decoded))
