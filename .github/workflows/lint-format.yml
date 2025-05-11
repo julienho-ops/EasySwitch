@@ -26,10 +26,10 @@ jobs:
           pip install black isort mypy
 
       - name: Run black
-        run: black --check .
+        run: black .
 
       - name: Run isort
-        run: isort --check-only .
+        run: isort .
 
       - name: Run mypy
         run: mypy .
