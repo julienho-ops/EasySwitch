@@ -58,12 +58,12 @@ class CinetpayAdapter(BaseAdapter):
     def _validate_credentials(self) -> bool:
         """ Validate the credentials for CinetPay. """
         
-        return all(
+        return all([
             self.config.api_key, 
             self.config.extra,                  # Extra configs must be set
             self.config.extra.get("site_id"),   # CinetPay uses SITE_ID 
             self.config.extra.get("secret"),    # and secret key (token)
-        )
+        ])
     
     def get_credentials(self):
         """Get the credentials for CinetPay."""
@@ -238,7 +238,7 @@ class CinetpayAdapter(BaseAdapter):
         # Check if the response is successful
         if response.status_code in range(200, 300):
             # Extract the payment link from the response
-            payment_link = response.data.get("data").get("payment_url")
+            payment_link = response.data.get("data",{}).get("payment_url")
 
             # Create a PaymentResponse object
             return PaymentResponse(
@@ -258,7 +258,7 @@ class CinetpayAdapter(BaseAdapter):
         # If the response is not successful, raise an API error
         raise PaymentError(
             message="Payment request failed",
-            status_code = response.status_code,
+            status_code = response.status,
             raw_response = response.data
         )
     

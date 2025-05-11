@@ -56,13 +56,13 @@ class FedapayAdapter(BaseAdapter):
     def _validate_credentials(self) -> bool:
         """ Validate the credentials for FedaPay. """
         
-        return all(
+        return all([
             self.config.api_key, 
             self.config.extra,                      # Extra configs must be set
             self.config.extra.get("public_key"),    # FedaPay uses Public key 
             self.config.extra.get("secret_key"),    # and secret key (token)
             self.config.extra.get('account_id')     # For those requests
-        )
+        ])
     
     def get_credentials(self):
         """Get the credentials for FedaPay."""
@@ -107,7 +107,7 @@ class FedapayAdapter(BaseAdapter):
                     "number": parse_phone(
                         transaction.customer.phone_number,
                         raise_exception = True
-                    ).get("national_number")    # Will return the phone number without country code
+                    ).get("national_number"),    # Will return the phone number without country code
                 },
                 "fees": 0   # Transaction fees
             }

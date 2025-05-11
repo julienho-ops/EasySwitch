@@ -76,7 +76,7 @@ class ProviderConfig(BaseConfigModel):
     token: Optional[str] = None
     base_url: Optional[str] = None
     callback_url: Optional[str] = None
-    callback_url: Optional[str] = None
+    return_url: Optional[str] = None
     timeout: int = 30
     environment: str = "sandbox"    # sandbox|production
     extra: Dict[str, Any] = {}      # Extra data (specific for each provider)

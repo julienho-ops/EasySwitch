@@ -31,7 +31,7 @@ class Provider(str, Enum):
 ##      SUPPORTED CURRENCIES
 #####
 class Currency(str, Enum):
-    """Enumération des devises supportées."""
+    """Available Currencies Choices."""
 
     XOF = "XOF"  # Franc CFA (BCEAO)
     XAF = "XAF"  # Franc CFA (BEAC)
@@ -42,6 +42,19 @@ class Currency(str, Enum):
     CDF = "CDF"  # Franc congolais
     GNF = "GNF"  # Franc guinéen
     KMF = "KMF"  # Franc comorien
+
+
+####
+##      SUPPORTED COUNTRIES
+#####
+class Countries(str, Enum):
+    """Supported Countries Choices."""
+
+    TOGO = 'TG'
+    BENIN = 'BJ'
+    GHANA = 'GH'
+    BURKINA = 'BF'
+    IVORY_COAST = 'CI'
 
 
 ####
