@@ -132,7 +132,7 @@ class RootConfig(BaseConfigModel):
         return v
     
     @field_validator('default_currency')
-    def validate_environment(cls, v):
+    def validate_default_currency(cls, v):
         """ Ensure Config's default currency value is valid. """
 
         if v not in Currency.__members__:
