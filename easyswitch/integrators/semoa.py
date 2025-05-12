@@ -51,21 +51,21 @@ class SemoaAdapter(BaseAdapter):
         """ Validate the credentials for CinetPay. """
         
         return all(
-            self.api_config.api_key,            # USED AS API KEY
-            self.api_config.client_id,          # USED AS CLIENT ID
-            self.api_config.client_secret,      # USED AS API SECRET
-            self.api_config.username,           # USED AS USERNAME
-            self.api_config.password,           # USED AS PASSWORD
-            self.api_config.callback_url        # USED AS CALLBACK URL
+            self.config.api_key,                        # USED AS API KEY
+            self.config.extra.get('client_id'),                      # USED AS CLIENT ID
+            self.config.extra.get('client_secret'),     # USED AS API SECRET
+            self.config.extra.get('username'),          # USED AS USERNAME
+            self.config.extra.get('password'),          # USED AS PASSWORD
+            self.config.callback_url                    # USED AS CALLBACK URL
         )
     
     def get_credentials(self):
         """Get the credentials for Semoa."""
         return {
-            "username": self.api_config.username,
-            "password": self.api_config.password,
-            "client_id": self.api_config.client_id,
-            "client_secret": self.api_config.client_secret,
+            "username": self.config.extra.get('username'),
+            "password": self.config.extra.get('password'),
+            "client_id": self.config.extra.get('client_id'),
+            "client_secret": self.config.extra.get('client_secret'),
         }
     
     def get_headers(self, authorization=False):
@@ -75,31 +75,32 @@ class SemoaAdapter(BaseAdapter):
             'Content-Type':'application/json'
         }
         if authorization:
-            headers['Authorization'] = f'Bearer {self.api_config.token}'
+            headers['Authorization'] = f'Bearer {self.config.token}'
         return headers
     
-    def authenticate(self):
+    async def authenticate(self):
         """Authenticate Our App and get Semoa AUTH_TOKEN."""
 
         # Send Authentication POST request to Semoa API
-        response = self.client.post(
-            endpoint = "auth",
-            json_data = self.get_credentials(),
-            headers = {
-                "Content-Type": "application/json"
-            }
-        )
-        # Check if the response is successful
-        if response.status_code == 200:
-            # Extract the token from the response
-            self.api_config.token = response.data.get("access_token")
-            return True
-        else:
-            raise AuthenticationError(
-                message="Authentication failed",
-                status_code = response.status_code,
-                raw_response = response.data
+        async with self.get_client() as client:
+            response = await client.post(
+                endpoint = "auth",
+                json_data = self.get_credentials(),
+                headers = {
+                    "Content-Type": "application/json"
+                }
             )
+            # Check if the response is successful
+            if response.status == 200:
+                # Extract the token from the response
+                self.config.token = response.data.get("access_token")
+                return True
+            else:
+                raise AuthenticationError(
+                    message="Authentication failed",
+                    status_code = response.status,
+                    raw_response = response.data
+                )
             
     def format_transaction(self, data):
         """
@@ -123,7 +124,7 @@ class SemoaAdapter(BaseAdapter):
                 "phone": data.customer.phone_number.replace(" ", "")
             },
             "metadata": data.metadata,
-            "callback_url": data.callback_url or self.api_config.callback_url
+            "callback_url": data.callback_url or self.config.callback_url
         }
 
     async def send_payment(self, transaction) -> PaymentResponse:
