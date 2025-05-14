@@ -2,7 +2,7 @@
 EasySwitch - Conf Module.
 """
 
-from importlib import import_module
+from easyswitch.utils import import_module_from
 from typing import Dict, Type
 
 from easyswitch.conf.base import (BaseConfigModel, BaseConfigSource, LogFormat,
@@ -14,7 +14,6 @@ from easyswitch.conf.base import (BaseConfigModel, BaseConfigSource, LogFormat,
 # )
 
 __all__ = [
-    'easyswitch.conf.manager.ConfigManager',
     'BaseConfigSource',
     'LogLevel',
     'LogFormat',
@@ -41,7 +40,7 @@ def get_source(name: str) -> Type[BaseConfigSource]:
 
     if name not in SOURCES:
         try:
-            import_module(f'easyswitch.config.sources.{name}')
+            import_module_from(f'easyswitch.conf.sources.{name}')
         except ImportError:
             pass
     return SOURCES.get(name)

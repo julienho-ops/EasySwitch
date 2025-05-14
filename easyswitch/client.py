@@ -1,6 +1,7 @@
 """
 EasySwitch - Client principal pour l'intégration unifiée des APIs mobile money
 """
+import asyncio
 from pathlib import Path
 from typing import Any, ClassVar, Dict, Optional, Union
 
@@ -10,7 +11,8 @@ from easyswitch.conf.manager import ConfigManager
 from easyswitch.exceptions import (AuthenticationError, ConfigurationError,
                                    InvalidProviderError)
 from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
-                              Provider, TransactionStatus)
+                              Provider, TransactionStatus,TransactionDetail)
+from easyswitch.integrators import load_adapter
 
 
 ####
@@ -184,10 +186,22 @@ class EasySwitch:
 
         # Initialize the integrators based on the enabled providers
         for provider_name, provider_config in self.config.providers.items():
+            # Load the adapter module only if needed
+            if provider_name.upper() not in AdaptersRegistry.list():
+                # Then load it
+                load_adapter(provider_name)
+
             try:
                 provider = Provider(provider_name)
-                adapter_class = AdaptersRegistry.get(provider)
-                self._integrators[provider] = adapter_class(provider_config)
+                adapter_class = AdaptersRegistry.get(provider.value)
+                self._integrators[provider] = adapter_class(
+                    provider_config,
+                    context = {
+                        'debug_mode': self.config.debug,
+                        'log_config': self.config.logging,
+                        'defaulf_currency': self.config.default_currency
+                    }
+                )
             except ValueError as e:
                 raise InvalidProviderError(
                     f"Invalid provider '{provider_name}': {str(e)}"
@@ -219,15 +233,10 @@ class EasySwitch:
         
         return self._integrators[provider]
     
-    async def send_payment(
+    def send_payment(
         self,
-        provider: Provider,
-        amount: float,
-        phone_number: str,
-        currency: Currency,
-        reference: str,
-        customer_info: Optional[CustomerInfo] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        transaction: TransactionDetail,
+        provider: Optional[Provider] = None,
     ) -> PaymentResponse:
         """
         Envoie une demande de paiement à un fournisseur spécifique.
@@ -244,17 +253,19 @@ class EasySwitch:
         Returns:
             PaymentResponse: Réponse de la demande de paiement
         """
+        provider =  provider or transaction.provider or self.config.default_provider
         integrator = self._get_integrator(provider)
-        return await integrator.send_payment(
-            amount=amount,
-            phone_number=phone_number,
-            currency=currency,
-            reference=reference,
-            customer_info=customer_info,
-            metadata=metadata
+        return asyncio.run(
+                integrator.send_payment(
+                transaction = transaction
+            )
         )
     
-    async def check_status(self, provider: Provider, transaction_id: str) -> TransactionStatus:
+    def check_status(
+        self, 
+        transaction_id: str,
+        provider: Optional[Provider] = None, 
+    ) -> TransactionStatus:
         """
         Vérifie le statut d'une transaction.
         
@@ -265,10 +276,17 @@ class EasySwitch:
         Returns:
             TransactionStatus: Le statut actuel de la transaction
         """
+        provider =  provider or self.config.default_provider
         integrator = self._get_integrator(provider)
-        return await integrator.check_status(transaction_id)
+        return asyncio.run(
+            integrator.check_status(transaction_id)
+        )
     
-    async def cancel_transaction(self, provider: Provider, transaction_id: str) -> bool:
+    def cancel_transaction(
+        self, 
+        transaction_id: str,
+        provider: Optional[Provider] = None,
+    ) -> bool:
         """
         Annule une transaction si possible.
         
@@ -279,13 +297,16 @@ class EasySwitch:
         Returns:
             bool: True si l'annulation a réussi, False sinon
         """
+        provider =  provider or self.config.default_provider
         integrator = self._get_integrator(provider)
-        return await integrator.cancel_transaction(transaction_id)
+        return asyncio.run(
+            integrator.cancel_transaction(transaction_id)
+        ) 
     
-    async def refund(
+    def refund(
         self,
-        provider: Provider,
         transaction_id: str,
+        provider: Optional[Provider] = None,
         amount: Optional[float] = None,
         reason: Optional[str] = None
     ) -> PaymentResponse:
@@ -301,9 +322,12 @@ class EasySwitch:
         Returns:
             PaymentResponse: Réponse de la demande de remboursement
         """
+        provider =  provider or self.config.default_provider
         integrator = self._get_integrator(provider)
-        return await integrator.refund(
-            transaction_id=transaction_id,
-            amount=amount,
-            reason=reason
+        return asyncio.run(
+            integrator.refund(
+                transaction_id=transaction_id,
+                amount=amount,
+                reason=reason
+            )
         )

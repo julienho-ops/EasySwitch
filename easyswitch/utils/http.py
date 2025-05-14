@@ -27,6 +27,7 @@ class HTTPResponse:
     headers: Dict[str, str]
     data: Union[Dict[str, Any], str]
     elapsed: float
+    url: str
 
 class HTTPClient:
     """Advanced asynchronous HTTP client with retry logic and connection pooling"""
@@ -65,12 +66,9 @@ class HTTPClient:
         self.retry_delay = retry_delay
         self.debug = debug
         self.proxy = proxy
+        self.pool_size = pool_size
         self._session: Optional[ClientSession] = None
-        self.connector = aiohttp.TCPConnector(
-            limit=pool_size,
-            force_close=False,
-            enable_cleanup_closed=True
-        )
+        self.connector: Optional[aiohttp.TCPConnector] = None
 
     async def __aenter__(self) -> 'HTTPClient':
         await self.start_session()
@@ -82,6 +80,12 @@ class HTTPClient:
     async def start_session(self) -> None:
         """Initialize the client session"""
         if self._session is None or self._session.closed:
+            if self.connector is None:
+                self.connector = aiohttp.TCPConnector(
+                    limit = self.pool_size,
+                    force_close = False,
+                    enable_cleanup_closed = True
+                )
             self._session = ClientSession(
                 connector=self.connector,
                 timeout=self.timeout,
@@ -181,19 +185,20 @@ class HTTPClient:
                             headers=dict(response.headers)
                         )
                     
-                    if not 200 <= response.status < 300:
-                        raise APIError(
-                            message = f"API request failed with status {response.status}",
-                            status_code = response.status,
-                            raw_response = response_data,
-                            headers = dict(response.headers)
-                        )
+                    # if not 200 <= response.status < 300:
+                    #     raise APIError(
+                    #         message = f"API request failed with status {response.status}",
+                    #         status_code = response.status,
+                    #         raw_response = response_data,
+                    #         headers = dict(response.headers)
+                    #     )
 
                     return HTTPResponse(
                         status = response.status,
                         headers = dict(response.headers),
                         data = response_data,
-                        elapsed = elapsed
+                        elapsed = elapsed,
+                        url = response.url
                     )
 
             except (aiohttp.ClientError, aiohttp.ClientPayloadError) as e:

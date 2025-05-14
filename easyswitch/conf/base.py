@@ -81,6 +81,16 @@ class ProviderConfig(BaseConfigModel):
     environment: str = "sandbox"    # sandbox|production
     extra: Dict[str, Any] = {}      # Extra data (specific for each provider)
 
+    @field_validator('environment')
+    def validate_environment(cls, v):
+        """ Ensure Config's environment value is valid. """
+
+        if v not in ('sandbox', 'production'):
+            raise ConfigurationError(
+                "Environment must be 'sandbox' or 'production'"
+            )
+        return v
+
 
 ####
 ##      ROOT CONFIGURATION CLASS
@@ -88,8 +98,8 @@ class ProviderConfig(BaseConfigModel):
 class RootConfig(BaseConfigModel):
     """Configuration root, represents EasySwitch config."""
 
-    environment: str = "sandbox"
-    """ API environment """
+    # environment: str = "sandbox"
+    # """ API environment """
 
     debug: bool = False
     """ If True, enable debug mode. """
@@ -103,16 +113,6 @@ class RootConfig(BaseConfigModel):
     """ Enabled providers. """
 
     default_provider: Optional[Provider] = None
-
-    @field_validator('environment')
-    def validate_environment(cls, v):
-        """ Ensure Config's environment value is valid. """
-
-        if v not in ('sandbox', 'production', 'development'):
-            raise ConfigurationError(
-                "Environment must be 'sandbox', 'development' or 'production'"
-            )
-        return v
     
     @field_validator('default_provider')
     def validate_default_provider(cls, v, values):

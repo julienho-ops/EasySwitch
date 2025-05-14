@@ -27,7 +27,7 @@ class CinetpayAdapter(BaseAdapter):
     PRODUCTION_URL: str = "https://api-checkout.cinetpay.com"
 
     ENDPOINTS: Dict[str, str] = {
-        "payment": "/v1/payment",
+        "payment": "/v2/payment",
         "payment_status": "/v2/payment/check",
     }
 
@@ -55,7 +55,7 @@ class CinetpayAdapter(BaseAdapter):
         Currency.USD: 10000.0
     }
 
-    def _validate_credentials(self) -> bool:
+    def validate_credentials(self) -> bool:
         """ Validate the credentials for CinetPay. """
         
         return all([
@@ -229,64 +229,81 @@ class CinetpayAdapter(BaseAdapter):
         order = self.format_transaction(transaction)
 
         # Then send the payment request
-        response = await self.client.post(
-            endpoint = self.ENDPOINTS["payment"],
-            json_data = order,
-            headers = self.get_headers()
-        )
-
-        # Check if the response is successful
-        if response.status_code in range(200, 300):
-            # Extract the payment link from the response
-            payment_link = response.data.get("data",{}).get("payment_url")
-
-            # Create a PaymentResponse object
-            return PaymentResponse(
-                transaction_id = order.get("transaction_id"),
-                provider = self.provider_name(),
-                status = TransactionStatus.PENDING,
-                amount = order["amount"],
-                currency = order["currency"],
-                reference = order["reference"],
-                payment_link = payment_link,
-                transaction_token = response.data.get("data").get("payment_token"),
-                customer = transaction.customer,
-                raw_response = response.data,
-                metadata = transaction.metadata
+        async with self.get_client() as client:
+            response = await client.post(
+                endpoint = self.ENDPOINTS["payment"],
+                json_data = order,
+                headers = self.get_headers()
             )
-        
-        # If the response is not successful, raise an API error
-        raise PaymentError(
-            message="Payment request failed",
-            status_code = response.status,
-            raw_response = response.data
-        )
+
+            # Check if the response is successful
+            if response.status in range(200, 300):
+                # Extract the payment link from the response
+                payment_link = response.data.get("data",{}).get("payment_url")
+
+                # Create a PaymentResponse object
+                return PaymentResponse(
+                    transaction_id = order.get("transaction_id"),
+                    provider = self.provider_name(),
+                    status = TransactionStatus.PENDING,
+                    amount = order["amount"],
+                    currency = order["currency"],
+                    reference = order["reference"],
+                    payment_link = payment_link,
+                    transaction_token = response.data.get("data").get("payment_token"),
+                    customer = transaction.customer,
+                    raw_response = response.data,
+                    metadata = transaction.metadata
+                )
+            
+            # If the response is not successful, raise an API error
+            raise PaymentError(
+                message = "Payment request failed",
+                status_code = response.status,
+                raw_response = response.data
+            )
     
     async def check_status(self, transaction_id: str) -> TransactionStatusResponse:
         """
         Check the status of a transaction.
         """
         # Send a GET request to check the status of the transaction
-        response = await self.client.get(
-            endpoint = self.ENDPOINTS["payment_status"],
-            params = {
-                "transaction_id": transaction_id
-            },
-            headers = self.get_headers()
-        )
+        async with self.get_client() as client:
+            response = await client.post(
+                endpoint = self.ENDPOINTS["payment_status"],
+                json_data = {
+                    "transaction_id": transaction_id,
+                    **self.get_credentials()
+                },
+                headers = self.get_headers()
+            )
+            print(response.url)
 
-        # No need to check the status code, cinetpay sends the status in the body
-        data = response.data
-        # check for a success message
-        status = data.get('message')
+            # No need to check the status code, cinetpay sends the status in the body
+            # Check if the response is successful
+            if response.status in range(200, 300):
+                data = response.data
+                # check for a success message
+                status = data.get('message')
+                print(data)
 
-        return TransactionStatusResponse(
-            transaction_id = transaction_id,
-            provider = self.provider_name(),
-            status = self.get_normalize_status(status),
-            amount = data.get("data").get("amount"),
-            data = data
-        )
+                return TransactionStatusResponse(
+                    transaction_id = transaction_id,
+                    provider = self.provider_name(),
+                    status = self.get_normalize_status(status),
+                    amount = data.get("data").get("amount"),
+                    data = data
+                )
+            
+            # If the response is not successful, raise an API error
+            raise PaymentError(
+                message = (
+                    f"Payment request failed with status {response.status}."
+                    f"\n url: {response.url}"
+                ),
+                status_code = response.status,
+                raw_response = response.data
+            )
     
     async def cancel_transaction(self, transaction_id):
         """
@@ -294,7 +311,7 @@ class CinetpayAdapter(BaseAdapter):
         """
         # CinetPay does not support transaction cancellation
         raise UnsupportedOperationError(
-            message="CinetPay does not support transaction cancellation",
+            message = "CinetPay does not support transaction cancellation",
             provider = self.provider_name()
         )
     
@@ -308,11 +325,11 @@ class CinetpayAdapter(BaseAdapter):
         """
         # CinetPay does not support refunds
         raise UnsupportedOperationError(
-            message="CinetPay does not support refunds",
+            message = "CinetPay does not support refunds",
             provider = self.provider_name()
         )
     
-    async def get_transaction_details(self, transaction_id: str) -> TransactionDetail:
+    async def get_transaction_detail(self, transaction_id: str) -> TransactionDetail:
         """
         Get the details of a transaction.
         """

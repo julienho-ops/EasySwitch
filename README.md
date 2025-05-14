@@ -103,6 +103,7 @@ EASYSWITCH_SEMOA_X_CALLBACK_URL=your_semoa_callback_url   # Optional
 ```
 
 ## 🧑‍💻 Usage Example
+### Example config
 
 ```python
 from easyswitch import EasySwitch
@@ -143,6 +144,97 @@ client = EasySwitch.from_multi_sources(
 from easyswitch.conf.base import RootConfig
 config = RootConfig(...)
 client = EasySwitch.from_config(config)
+```
+
+### Example Initializing payment
+
+```python
+from easyswitch import (
+    EasySwitch, TransactionDetail, Provider,
+    TransactionStatus, Currency, TransactionType,
+    CustomerInfo
+)
+
+config = {
+    "environment": "sandbox",
+    "providers": {
+        Provider.CINETPAY: {
+            "api_key": "your_api_key",
+            "base_url": "https://api.exemple.com/v1", # Optional
+            "callback_url": "https://api.exemple.com/v1/callback",
+            "return_url": "https://api.exemple.com/v1/return",
+            "environment": "production"     # Optional sandbox by default
+            "extra": {
+                "secret": "your_secret",
+                "site_id": "your_site_id",
+                "channels": "ALL"     # More details on Cinetpay's documentation.
+                "lang": "fr"        # More details on Cinetpay's documentation.
+            }
+        }
+    }
+}
+
+# Initialize EasySwitch client
+client = EasySwitch.from_dict(config_dict = config)
+
+# Creating a Transaction
+t = TransactionDetail(
+    transaction_id = 'xveahdk-82998n9f8uhgj',
+    provider = Provider.CINETPAY,
+    status = TransactionStatus.PENDING, # Default value
+    currency = Currency.XOF,
+    amount = 150,
+    transaction_type = TransactionType.PAYMENT,  # Default value
+    reason = 'My First Transaction Test with EasySwitch\'s CinetPay client.',
+    reference = 'my_ref',
+    customer = CustomerInfo(
+        phone_number = '+22890000000',
+        first_name = 'Wil',
+        last_name = 'Eins',
+        address = '123 Rue képui, Lomé', # Optional
+        city = 'Lomé',  # Optional
+    )
+)
+
+# Initializing Payment
+res = client.send_payment(t)    # Will send payment request to CinetPay 
+print(res)
+
+# PaymentResponse(
+#     transaction_id = 'xveahdk-82998n9f8uhgj', 
+#     provider = 'cinetpay', 
+#     status = <TransactionStatus.PENDING: 'pending'>, 
+#     amount = 150, currency=<Currency.XOF: 'XOF'>, 
+#     created_at = datetime.datetime(2025, 5, 13, 16, 43, 19, 193307), 
+#     expires_at = None, 
+#     reference = 'my_ref', 
+#     payment_link = 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
+#     transaction_token = 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
+#     customer = CustomerInfo(
+#         phone_number = '+22898490524', 
+#         first_name = 'Wil', 
+#         last_name = 'Eins', 
+#         email = None, 
+#         address = '123 Rue képui, Lomé', 
+#         city = 'Lomé', 
+#         country = None, 
+#         postal_code = None, 
+#         zip_code = None, 
+#         state = None, 
+#         id = None
+#     ), 
+#     raw_response = {
+#         'code': '201', 
+#         'message': 'CREATED', 
+#         'description': 'Transaction created with success', 
+#         'data': {
+#             'payment_token': 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
+#             'payment_url': 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d'
+#         }, 
+#         'api_response_id': '1747154599.4854'
+#     }, 
+#     metadata = {}
+# )
 ```
 
 ## Road map

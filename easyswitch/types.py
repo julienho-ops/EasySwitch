@@ -14,17 +14,9 @@ from typing import Any, Dict, List, Optional
 class Provider(str, Enum):
     """ Available choices for supported Payment providers. """
 
-    # MTN = "mtn"
-    # ORANGE = "orange"
-    # WAVE = "wave"
-    # MOOV = "moov"
-    # PAYDUNYA = "paydunya"
-
-    @classmethod
-    def register(cls,name: str):
-        """ Register a provider. """
-
-        setattr(cls, name.upper(), name)
+    SEMOA = 'SEMOA'
+    BIZAO = 'BIZAO'
+    CINETPAY = 'CINETPAY'
 
 
 ####
@@ -179,11 +171,11 @@ class TransactionDetail:
 
     transaction_id: str
     provider: Provider
-    status: TransactionStatus
     amount: float
     currency: Currency
-    transaction_type: TransactionType
-    created_at: datetime
+    status: TransactionStatus = TransactionStatus.PENDING
+    transaction_type: TransactionType = TransactionType.PAYMENT
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     customer: Optional[CustomerInfo] = None

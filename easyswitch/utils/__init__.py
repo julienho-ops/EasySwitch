@@ -1,6 +1,10 @@
 import platform
+from types import ModuleType
 import urllib.parse
 from importlib import metadata
+from typing import Union
+from pathlib import Path
+from importlib import import_module
 
 try:
     __version__ = metadata.version('easyswitch')
@@ -49,3 +53,8 @@ def encoded_query_string_to_dict(encoded: str) -> dict:
     """Converts a url safe query str into a dict."""
     decoded = urllib.parse.unquote(encoded)
     return dict(urllib.parse.parse_qsl(decoded))
+
+# IMPORT MODULE
+def import_module_from(path: Union[str,Path]) ->'ModuleType':
+    """Import module using importlib"""
+    return import_module(path)
