@@ -109,7 +109,7 @@ class BaseAdapter(abc.ABC):
     def __init__(
         self, 
         config: ProviderConfig, 
-        context: Optional[Dict[str,Any]]
+        context: Optional[Dict[str,Any]] = None
     ):
         """
         Initialize the adapter with the provided configuration.
