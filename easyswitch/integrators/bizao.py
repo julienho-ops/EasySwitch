@@ -60,7 +60,7 @@ class BizaoAdapter(BaseAdapter):
         Currency.USD: 10000.0
     }
 
-    def _validate_credentials(self) -> bool:
+    def validate_credentials(self) -> bool:
         """ Validate the credentials for Bizao. """
         
         return all([

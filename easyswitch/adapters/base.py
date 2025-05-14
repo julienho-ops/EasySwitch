@@ -38,10 +38,6 @@ class AdaptersRegistry:
             name = name.upper()
             if not name in cls._registry.keys():
                 cls._registry[name] = adapter
-
-            # Register the provider enum dynamically if needed
-            if not hasattr(Provider, name):
-                Provider.register(name)
                 
             return adapter
 
@@ -52,7 +48,10 @@ class AdaptersRegistry:
         """Get an Adapter class by its name."""
 
         if name not in cls._registry:
-            raise InvalidProviderError(f"Invalid Adapter name: '{name}' not found.")
+            raise InvalidProviderError(
+                f"Invalid Adapter name: '{name}' not found."
+                )
+        
         return cls._registry[name]
 
     @classmethod
@@ -107,7 +106,11 @@ class BaseAdapter(abc.ABC):
     client: Optional[HTTPClient] = None
     """HTTP client for the adapter."""
     
-    def __init__(self, config: ProviderConfig):
+    def __init__(
+        self, 
+        config: ProviderConfig, 
+        context: Optional[Dict[str,Any]]
+    ):
         """
         Initialize the adapter with the provided configuration.
         
@@ -117,6 +120,7 @@ class BaseAdapter(abc.ABC):
         (Note: This may include API keys, endpoints, etc.)
         """
         self.config = config
+        self.context = context
 
         # Initialize the adapter with the provided configuration
         # This may include setting up API keys, endpoints, etc.
@@ -124,7 +128,7 @@ class BaseAdapter(abc.ABC):
         self._initialize_adapter()
 
         # check api configs
-        if not self._validate_credentials(self.config):
+        if not self.validate_credentials():
             raise InvalidProviderError(
                 f"Invalid credentials for provider {self.provider_name()}"
             )
@@ -157,7 +161,7 @@ class BaseAdapter(abc.ABC):
                     'User-Agent': USER_AGENT
                 },
                 timeout = self.config.timeout,
-                debug = self.config.debug
+                debug = self.context.get('debug_mode') or True
             )
             
         # Return the HTTP client
@@ -191,6 +195,10 @@ class BaseAdapter(abc.ABC):
     def supports_partial_refund(cls) -> bool:
         """ True if the provider supports partial refund. """
         return False
+    
+    def get_context(self):
+        """Return extra context attributes passed to a specific adapter"""
+        return self.context or {}
     
     @abc.abstractmethod
     async def send_payment(
@@ -332,7 +340,6 @@ class BaseAdapter(abc.ABC):
         pass
     
     @classmethod
-    @abc.abstractmethod
     def provider_name(cls) -> str:
         """
         Get the name of the provider.
@@ -343,7 +350,7 @@ class BaseAdapter(abc.ABC):
         return cls.__name__.replace("Adapter", "").lower()
     
     @abc.abstractmethod
-    def validate_credentials(cls, credentials: ProviderConfig) -> bool:
+    def validate_credentials(self, credentials: ProviderConfig) -> bool:
         """
         Validate the credentials for the provider.
         This method should be implemented by each specific adapter to
@@ -366,22 +373,6 @@ class BaseAdapter(abc.ABC):
         """
         return self.REQUIRED_FIELDS
     
-    @abc.abstractmethod
-    def map_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Map the fields from the provider to the standardized format.
-        This method should be implemented by each specific adapter to
-        convert the provider-specific fields to the standardized format.
-        
-        Args:
-            data: The data to map
-            
-        Returns:
-            Dict[str, Any]: The mapped data
-        """
-        return data
-    
-    @abc.abstractmethod
     def validate_transaction(self, transaction: TransactionDetail) -> bool:
         """
         Validate the transaction data.
@@ -428,21 +419,6 @@ class BaseAdapter(abc.ABC):
             Dict[str, Any]: The converted data
         """
         return data
-    
-    @abc.abstractmethod
-    def _validate_credentials(self, credentials: ProviderConfig) -> bool:
-        """
-        Validate the credentials for the provider.
-        This method should be implemented by each specific adapter to
-        check if the provided credentials are valid for the specific adapter.
-        
-        Args:
-            credentials: The credentials to validate
-            
-        Returns:
-            bool: True if the credentials are valid, False otherwise
-        """
-        return True
     
     @abc.abstractmethod
     def get_normalize_status(self, status: str) -> TransactionStatus:
