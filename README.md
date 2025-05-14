@@ -117,7 +117,7 @@ client = EasySwitch.from_json("config.json")
 config = {
     "environment": "sandbox",
     "providers": {
-        "cinetpay": {
+        Provider.CINETPAY: {
             "api_key": "your_api_key",
             "base_url": "https://api.exemple.com/v1", # Optional
             "callback_url": "https://api.exemple.com/v1/callback",
@@ -146,7 +146,7 @@ config = RootConfig(...)
 client = EasySwitch.from_config(config)
 ```
 
-### Example Initializing payment
+### Complete Example of payment Initialization
 
 ```python
 from easyswitch import (
@@ -199,7 +199,9 @@ t = TransactionDetail(
 # Initializing Payment
 res = client.send_payment(t)    # Will send payment request to CinetPay 
 print(res)
-
+```
+#### Result
+```python
 # PaymentResponse(
 #     transaction_id = 'xveahdk-82998n9f8uhgj', 
 #     provider = 'cinetpay', 
@@ -245,10 +247,11 @@ Add Support for following Providers:
 - [x] Cinetpay
 - [x] Bizao
 - [x] Semoa
+- [ ] PayGate
 - [ ] Fedapay
 - [ ] Kkiapay
-- [ ] PayGate
 - [ ] MTN
+- [ ] Orange
 - [ ] PayPlus
 - [ ] QOSPAY
 - [ ] Paydunya
