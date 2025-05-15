@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import json
 import base64
+import asyncio
 from typing import Any, ClassVar, Dict, List, Optional
 
 from easyswitch.utils.http import HTTPClient
@@ -27,12 +28,12 @@ from easyswitch.utils import (
 class BizaoAdapter(BaseAdapter):
     """Bizao Integrator for EasySwitch SDK."""
 
-    SANDBOX_URL: str = "https://preproduction-gateway.bizao.com/mobilemoney/v2"
+    SANDBOX_URL: str = "https://preproduction-gateway.bizao.com/mobilemoney"
 
-    PRODUCTION_URL: str = "http://api.bizao.com/mobilemoney/v2"
+    PRODUCTION_URL: str = "https://api.bizao.com/mobilemoney"
 
     ENDPOINTS: Dict[str, str] = {
-        "payment": "/v1/payment",
+        "payment": "/v1",
         "status": "/v1/getStatus/{transaction_id}",
     }
 
@@ -103,11 +104,11 @@ class BizaoAdapter(BaseAdapter):
         """Returns extra headers"""
         
         return {
-            'country-code': self.config.extra.get('country-code'), 
+            'country-code': self.config.extra.get('country-code').lower(), 
             'mno-name': self.config.extra.get('mno-name').lower(),
             'channel': self.config.extra.get('channel'),
             'lang': self.config.extra.get('lang','FR').lower()
-        } if extra.get('transaction',None) else {}
+        } # if extra.get('transaction',None) else {}
     
     def get_headers(
         self, 
@@ -122,11 +123,11 @@ class BizaoAdapter(BaseAdapter):
         }
 
         if authorization:
-            header |= self.get_authrizations(authorization)
+            headers |= self.get_authrizations(authorization)
 
         # ADD EXTRA HEADERS
         if extra:
-            header |= self.get_extra_headers(**kwargs)
+            headers |= self.get_extra_headers(**kwargs)
        
         return headers
     
@@ -177,14 +178,24 @@ class BizaoAdapter(BaseAdapter):
 
             # Then Check for success
             if response.status in range(200,300):
-                self.config.api_key = response.data
+                self.config.api_key = response.data.get('access_token')
+                print(self.config.api_key)
+                return
 
             # Raise AuthenticationError
             raise AuthenticationError(
-                message="Authentication failed",
-                status_code = response.status,
-                raw_response = response.data
+                message = (
+                    f"Authentication failed with status {response.status}.\n"
+                    f"url: {response.url}"
+                ),
+                code = str(response.status),
+                details = response.data
             )
+        
+    def _initialize_adapter(self):
+        """Override Initialize Adapter method to add authentications."""
+        asyncio.run(self.authenticate())
+        return super()._initialize_adapter()
 
     def format_transaction(
         self, 
@@ -204,7 +215,7 @@ class BizaoAdapter(BaseAdapter):
             "state": dict_to_encoded_query_string(transaction.metadata),
             "return_url": transaction.return_url or self.config.return_url,
             "cancel_url": self.config.extra.get("cancel_url",''),
-            # "otp_code":""
+            "NotifUrl": transaction.callback_url or self.config.callback_url
         }
         # Optional for web channel but required for TPE and USSD channels 
         if self.config.extra.get("channel") == "tpe":
@@ -239,6 +250,12 @@ class BizaoAdapter(BaseAdapter):
 
         return statues.get(status, TransactionStatus.UNKNOWN)
     
+    def parse_webhook(self, payload, headers):
+        return super().parse_webhook(payload, headers)
+    
+    def validate_webhook(self, payload, headers):
+        return super().validate_webhook(payload, headers)
+    
     async def send_payment(self, transaction: TransactionDetail) -> PaymentResponse:
         """
         Send a payment request to Bizao.
@@ -253,7 +270,8 @@ class BizaoAdapter(BaseAdapter):
                 endpoint = self.ENDPOINTS["payment"],
                 json_data = order,
                 headers = self.get_headers(
-                    authorization = True
+                    authorization = True,
+                    extra = True
                 ),
             )
 
@@ -281,7 +299,10 @@ class BizaoAdapter(BaseAdapter):
 
             # If the response is not successful, raise an API error
             raise PaymentError(
-                message="Payment request failed",
+                message = (
+                    f"Payment request failed with status {response.status}.\n"
+                    f"url: {response.url}\n {response.data}"
+                ),
                 status_code = response.status,
                 raw_response = response.data
             )
@@ -295,11 +316,12 @@ class BizaoAdapter(BaseAdapter):
         async with self.get_client() as client:
             # Then make the request
             response = await client.get(
-                endpoint=self.ENDPOINTS["payment_status"].format(
+                endpoint=self.ENDPOINTS["status"].format(
                     transaction_id = transaction_id
                 ),
                 headers = self.get_headers(
-                    authorization = True
+                    authorization = True,
+                    extra = True
                 ),
             )
 
@@ -338,7 +360,7 @@ class BizaoAdapter(BaseAdapter):
             provider = self.provider_name()
         )
     
-    async def get_transaction_details(self, transaction_id: str) -> TransactionDetail:
+    async def get_transaction_detail(self, transaction_id: str) -> TransactionDetail:
         """
         Get the details of a transaction.
         """

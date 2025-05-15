@@ -446,6 +446,6 @@ class BaseAdapter(abc.ABC):
         """
         return (
             self.SANDBOX_URL if 
-            self.config.environment == "development" else 
+            self.config.environment == "sandbox" else 
             self.PRODUCTION_URL
         )
