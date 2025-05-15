@@ -1,0 +1,20 @@
+from easyswitch import (EasySwitch, TransactionDetail, Providor,
+    TransactionStatus, Currency, TransactionType, CustomerInfo
+)
+
+config = {
+    "debig": True,
+    "providers": {
+        "PAYGATE": {
+            "api_key": "bce4fd16-7b18-4be0-8a75-5997f2ad1f60",
+            "base_url": "https://paygateglobal.com",
+            "environment": "production",
+            "callback_url": "https://payment.dreammore.co/pg/confirmation"
+        }
+    }
+}
+
+#Initialize paygate client
+client = EasySwitch.from_dict(config_dict=config)
+
+t = 
