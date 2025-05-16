@@ -4,6 +4,7 @@ easyswitch.egg-info/*
 **/__pycache__/*
 .pypirc
 .venv/*
+.mypy_cache/*
 Pipfile
 Pipfile.lock
 build/*
