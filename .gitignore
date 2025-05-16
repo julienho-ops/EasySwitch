@@ -6,3 +6,6 @@ easyswitch.egg-info/*
 .venv/*
 Pipfile
 Pipfile.lock
+build/*
+examples/*
+examples.py
