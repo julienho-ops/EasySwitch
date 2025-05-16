@@ -5,6 +5,7 @@
 ## Currently Supported Providers
 - <img src = 'https://docs.cinetpay.com/images/logo-new.png' height = 60 >
 - <img src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9eIXxPvwTKAgJYxFO7mR6ZGIrTaK16qFI0UsGnIQg&s' height = 60 >
+- <img src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3sWIPK8p28IQhWbqKpewYYtCHZaAk6O98T4dUiEhp&s' height = 60 ></img>
 <!-- - <img src = 'https://www.fedapay.com/wp-content/themes/fedapay_theme/pictures/feda-logo-blue-new.svg' height = 60 > -->
 - <img src = 'https://bankassurafrik.com/wp-content/uploads/2022/07/telechargement-2.png' height = 60>
 
@@ -200,43 +201,46 @@ t = TransactionDetail(
 res = client.send_payment(t)    # Will send payment request to CinetPay 
 print(res)
 ```
+
 #### Result
 ```python
-# PaymentResponse(
-#     transaction_id = 'xveahdk-82998n9f8uhgj', 
-#     provider = 'cinetpay', 
-#     status = <TransactionStatus.PENDING: 'pending'>, 
-#     amount = 150, currency=<Currency.XOF: 'XOF'>, 
-#     created_at = datetime.datetime(2025, 5, 13, 16, 43, 19, 193307), 
-#     expires_at = None, 
-#     reference = 'my_ref', 
-#     payment_link = 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
-#     transaction_token = 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
-#     customer = CustomerInfo(
-#         phone_number = '+22898490524', 
-#         first_name = 'Wil', 
-#         last_name = 'Eins', 
-#         email = None, 
-#         address = '123 Rue képui, Lomé', 
-#         city = 'Lomé', 
-#         country = None, 
-#         postal_code = None, 
-#         zip_code = None, 
-#         state = None, 
-#         id = None
-#     ), 
-#     raw_response = {
-#         'code': '201', 
-#         'message': 'CREATED', 
-#         'description': 'Transaction created with success', 
-#         'data': {
-#             'payment_token': 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
-#             'payment_url': 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d'
-#         }, 
-#         'api_response_id': '1747154599.4854'
-#     }, 
-#     metadata = {}
-# )
+'''
+PaymentResponse(
+    transaction_id = 'xveahdk-82998n9f8uhgj', 
+    provider = 'cinetpay', 
+    status = <TransactionStatus.PENDING: 'pending'>, 
+    amount = 150, currency=<Currency.XOF: 'XOF'>, 
+    created_at = datetime.datetime(2025, 5, 13, 16, 43, 19, 193307), 
+    expires_at = None, 
+    reference = 'my_ref', 
+    payment_link = 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
+    transaction_token = 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
+    customer = CustomerInfo(
+        phone_number = '+22898490524', 
+        first_name = 'Wil', 
+        last_name = 'Eins', 
+        email = None, 
+        address = '123 Rue képui, Lomé', 
+        city = 'Lomé', 
+        country = None, 
+        postal_code = None, 
+        zip_code = None, 
+        state = None, 
+        id = None
+), 
+    raw_response = {
+        'code': '201', 
+        'message': 'CREATED', 
+        'description': 'Transaction created with success', 
+        'data': {
+            'payment_token': 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
+            'payment_url': 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d'
+        }, 
+        'api_response_id': '1747154599.4854'
+    }, 
+    metadata = {}
+)
+'''
 ```
 
 ## Road map
@@ -247,7 +251,7 @@ Add Support for following Providers:
 - [x] Cinetpay
 - [x] Bizao
 - [x] Semoa
-- [ ] PayGate
+- [x] PayGate
 - [ ] Fedapay
 - [ ] Kkiapay
 - [ ] MTN
