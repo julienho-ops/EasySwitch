@@ -7,3 +7,6 @@ easyswitch.egg-info/*
 .mypy_cache/*
 Pipfile
 Pipfile.lock
+build/*
+examples/*
+examples.py

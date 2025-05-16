@@ -17,7 +17,7 @@ class Provider(str, Enum):
     SEMOA = 'SEMOA'
     BIZAO = 'BIZAO'
     CINETPAY = 'CINETPAY'
-    PAYGATE = 'PAYGATE'
+    
 
 
 ####

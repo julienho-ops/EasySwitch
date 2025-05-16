@@ -22,6 +22,7 @@ from typing import Union
 @AdaptersRegistry.register()
 class PayGateAdapter(BaseAdapter):
     """PayGate Global Integrator for EasySwitch SDK."""
+
     SANDBOX_URL: str = "https://paygateglobal.com"
     PRODUCTION_URL: str = "https://paygateglobal.com"
 
@@ -48,19 +49,27 @@ class PayGateAdapter(BaseAdapter):
     # Mapping of supported mobile networks
     SUPPORTED_NETWORKS: ClassVar[List[str]] = ["FLOOZ", "TMONEY"]
 
+
+    @classmethod
+    def provider_name(cls) -> str:
+        return "PAYGATE"
+
     def get_credentials(self) -> Dict[str, str]:
         """Get PayGate credentials (just API key in this case)"""
         return {
             "api_key": self.config.api_key,
         }
-
-
-    def validate_credentials(self) -> bool:
-        """Validate credentials """
-        return bool(self.config.api_key)
-
-
-
+    
+    @classmethod
+    def validate_credentials(cls, credentials: ProviderConfig) -> bool:
+        """Validate credentials (class method)"""
+        return bool(credentials.api_key)
+    
+    def _validate_credentials(self, credentials: ProviderConfig = None) -> bool:
+        """Validate credentials (instance method)"""
+        creds_to_validate = credentials if credentials else self.config
+        return bool(creds_to_validate.api_key)
+    
     def map_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Map PayGate fields to standard transaction fields
@@ -77,17 +86,17 @@ class PayGateAdapter(BaseAdapter):
             "status": "status",
             "payment_method": "network"
         }
-
+        
         return {standard: data.get(paygate) for standard, paygate in field_mapping.items()}
-
+    
     def validate_transaction(self, transaction: TransactionDetail) -> bool:
         if transaction.currency not in self.SUPPORTED_CURRENCIES:
             raise ValueError(f"Unsupported currency: {transaction.currency}")
-
+        
         min_amount = self.MIN_AMOUNT.get(transaction.currency, 0)
         if transaction.amount < min_amount:
             raise ValueError(f"Amount too small. Minimum: {min_amount}")
-
+            
         return True
 
 
@@ -126,19 +135,19 @@ class PayGateAdapter(BaseAdapter):
         status_mapping = {
             "0": TransactionStatus.SUCCESSFUL,  # Payment successful
             "2": TransactionStatus.PENDING,     # Invalid authentication token
-            "4": TransactionStatus.EXPIRED,     # Invalid parameters
-            "6": TransactionStatus.CANCELLED    # Duplicate detected. A transaction with the same identifier already exists.
+            "4": TransactionStatus.ERROR,     # Invalid parameters
+            "6": TransactionStatus.ERROR    # Duplicate detected. A transaction with the same identifier already exists.
         }
         return status_mapping.get(str(status_code), TransactionStatus.UNKNOWN)
 
-    async def direct_payment(self, transaction: TransactionDetail) -> PaymentResponse:
+    async def send_payment(self, transaction: TransactionDetail) -> PaymentResponse:
         """
         Initiate payment using PayGate's direct API method.
-
-        Documentation: Method 12 in the guide
+        
+        Documentation: Method 1 in the guide
         """
         payload = self.format_transaction(transaction)
-
+        
         response = await self.client.post(
             endpoint=self.ENDPOINTS["direct_payment"],
             json_data=payload,
@@ -159,17 +168,17 @@ class PayGateAdapter(BaseAdapter):
                 raw_response=response.data,
                 metadata=transaction.metadata
             )
-
+        
         raise PaymentError(
             message=f"Payment failed: {response.data.get('message', 'Unknown error')}",
             status_code=response.status_code,
             raw_response=response.data
         )
 
-    async def send_payment(self, transaction: TransactionDetail) -> PaymentResponse:
+    async def create_payment_link(self, transaction: TransactionDetail) -> PaymentResponse:
         """
         Create a PayGate payment page link (Method 2 in documentation).
-
+        
         Returns a PaymentResponse with the payment_link set.
         """
         params = {
@@ -187,7 +196,7 @@ class PayGateAdapter(BaseAdapter):
         if transaction.provider.name:
             params["network"] = transaction.provider.name
 
-        payment_url = f"{self.PRODUCTION_URL}{self.ENDPOINTS['payment']}?{self._dict_to_query(params)}"
+        payment_url = f"{self.get_base_url()}{self.ENDPOINTS['payment']}?{self._dict_to_query(params)}"
 
         return PaymentResponse(
             transaction_id=transaction.transaction_id,
@@ -206,7 +215,7 @@ class PayGateAdapter(BaseAdapter):
     async def check_status(self, transaction_id: str) -> TransactionStatusResponse:
         """
         Check transaction status using either reference method.
-
+        
         Documentation: "Check Payment Status"
         """
         # Try first with v2 method (by identifier)
@@ -219,7 +228,7 @@ class PayGateAdapter(BaseAdapter):
             headers=self.get_headers()
         )
 
-        if response.status in range(200, 300):
+        if response.status_code == 200:
             data = response.data
             return TransactionStatusResponse(
                 transaction_id=transaction_id,
@@ -240,7 +249,7 @@ class PayGateAdapter(BaseAdapter):
         """Get transaction details - PayGate doesn't support this directly"""
         # On utilise check_status comme alternative
         status_response = await self.check_status(transaction_id)
-
+        
         return TransactionDetail(
             transaction_id=transaction_id,
             provider=self.provider_name(),
@@ -256,7 +265,7 @@ class PayGateAdapter(BaseAdapter):
     def validate_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> bool:
         """
         Validate PayGate webhook signature.
-
+        
         Documentation: "Receive Payment Confirmation"
         """
         if not payload or not headers:
@@ -297,7 +306,7 @@ class PayGateAdapter(BaseAdapter):
     async def get_balance(self) -> Dict[str, float]:
         """
         Check account balances (FLOOZ and TMONEY).
-
+        
         Documentation: "Check Your Balance"
         Note: Requires IP whitelisting on PayGate side
         """
@@ -312,7 +321,7 @@ class PayGateAdapter(BaseAdapter):
                 "flooz": float(response.data.get("flooz", 0)),
                 "tmoney": float(response.data.get("tmoney", 0))
             }
-
+        
         raise PaymentError(
             message="Failed to get balance",
             status_code=response.status_code,
