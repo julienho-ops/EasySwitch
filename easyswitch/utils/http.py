@@ -76,6 +76,11 @@ class HTTPClient:
 
     async def __aexit__(self, *exc) -> None:
         await self.close_session()
+        
+    @property
+    def is_closed(self) -> bool:
+        """Check if the session is closed"""
+        return self._session is None or self._session.closed
 
     async def start_session(self) -> None:
         """Initialize the client session"""

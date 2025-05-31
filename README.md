@@ -1,6 +1,16 @@
 # EasySwitch😎 Python Library
 
+# What is EasySwitch?
 **EasySwitch** is a unified **Python SDK for Mobile Money** integration across major aggregators in West Africa. It provides a single, consistent interface to simplify payment processing, reduce code duplication, and accelerate development.
+
+# Why EasySwitch?
+
+Integrating different payment providers usually means learning different APIs, handling inconsistent error messages, and rewriting code to switch providers. EasySwitch was created to eliminate this complexity:
+
+- 🚀 Accelerate your integrations
+- 🔁 Switch providers without changing your code
+- 🧱 Leverage a robust, type-safe, async-first architecture
+- 🌍 Support local and international aggregators
 
 ## Currently Supported Providers
 - <img src = 'https://docs.cinetpay.com/images/logo-new.png' height = 60 >
@@ -34,16 +44,24 @@ We will add progressively support for following Providers:
 
 ## Prerequisites
 
-You need to have at least 3.9 version of python to be able to continue.
+You need to have at least 3.13 version of python to be able to continue.
 
 
 ## Install
 
 ```sh
+# Uising pip
 pip install easyswitch
+# Or using uv
+uv add easyswitch
 ```
 
-## ⚙️ Configuration Options
+# Core Concepts
+
+## ⚙️ Configuration
+EasySwitch uses a centralized configuration object to define providers, credentials, default settings, and adapter mappings.
+
+### ⚙️ Configuration Options
 
 You can configure EasySwitch using:
 
@@ -51,6 +69,61 @@ You can configure EasySwitch using:
 2. A JSON configuration file
 3. A YAML configuration file
 4. A native Python dictionary
+
+### Example Configuration
+
+```python
+from easyswitch import (
+    EasySwitch, TransactionDetail, Provider,
+    TransactionStatus, Currency, TransactionType,
+    CustomerInfo
+)
+
+config = {
+    "debug": True,
+    "providers": {
+        Provider.CINETPAY: {
+            "api_key": "your_api_key",
+            "base_url": "https://api.exemple.com/v1", # Optional
+            "callback_url": "https://api.exemple.com/v1/callback",
+            "return_url": "https://api.exemple.com/v1/return",
+            "environment": "production",     # Optional sandbox by default
+            "extra": {
+                "secret": "your_secret",
+                "site_id": "your_site_id",
+                "channels": "ALL",     # More details on Cinetpay's documentation.
+                "lang": "fr"        # More details on Cinetpay's documentation.
+            }
+        },
+        Provider.BIZAO: {
+            "api_key": "your_api_key",
+            "base_url": "https://api.exemple.com/v1", # Optional
+            "callback_url": "https://api.exemple.com/v1/callback",
+            "return_url": "https://api.exemple.com/v1/return",
+            "environment": "production",     # Optional sandbox by default
+            "timeout":30,
+            "extra": {
+                # Dev Configs
+                "dev_client_id": "your_dev_client_id",
+                "dev_client_secret": "your_dev_client_secret",
+                "dev_token_url": "https://your_dev_token_url.com",     
+
+                # Prod Configs
+                "prod_client_id": "your_prod_client_id",
+                "prod_client_secret": "your_prod_client_secret",
+                "prod_token_url": "https://your_dev_token_url.com",
+
+                # Global configs
+                "country-code": Countries.IVORY_COAST,
+                "mno-name": "orange",
+                "channel": "web",
+                "lang": "fr",
+                "cancel_url": "https/example.com/cancel"
+            }
+        },
+    }
+}
+```
 
 ### Example `.env` file
 ```ini
@@ -102,6 +175,9 @@ EASYSWITCH_SEMOA_X_USERNAME=your_semoa_username
 EASYSWITCH_SEMOA_X_PASSWORD=your_semoa_password
 EASYSWITCH_SEMOA_X_CALLBACK_URL=your_semoa_callback_url   # Optional
 ```
+
+## Adapters
+Adapters are pluggable classes that implement the logic for each payment aggregator. They provide standardized methods (send_payment, chech_status, refund, etc.).
 
 ## 🧑‍💻 Usage Example
 ### Example config
@@ -216,7 +292,7 @@ PaymentResponse(
     payment_link = 'https://checkout.cinetpay.com/payment/d6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
     transaction_token = 'd6a902e9b398bbbf6f600ca0ac9df8d86d865dd73157a0b2f7c67c877361b1f880d16ee44404e8a0744cf57ad85f89f56f06ae9037fb5d', 
     customer = CustomerInfo(
-        phone_number = '+22898490524', 
+        phone_number = '+22890000000', 
         first_name = 'Wil', 
         last_name = 'Eins', 
         email = None, 

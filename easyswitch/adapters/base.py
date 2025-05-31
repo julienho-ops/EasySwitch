@@ -152,7 +152,7 @@ class BaseAdapter(abc.ABC):
         Returns:
             Any: The HTTP client for the adapter
         """
-        if not self.client:
+        if not self.client or self.client.is_closed:
             # Initialize the HTTP client if not already initialized
             return HTTPClient(
                 base_url = self._get_base_url(),
