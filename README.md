@@ -217,7 +217,6 @@ client = EasySwitch.from_json("config.json")
 
 # 3. from a Python dict
 config = {
-    "environment": "sandbox",
     "providers": {
         Provider.CINETPAY: {
             "api_key": "your_api_key",
