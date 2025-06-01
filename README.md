@@ -202,7 +202,7 @@ client = EasySwitch.from_yaml("config.yaml")
 ```
 
 ## Adapters
-Adapters are pluggable classes that implement the logic for each payment aggregator. They provide standardized methods (send_payment, chech_status, refund, etc.).
+Adapters are pluggable classes that implement the logic for each payment aggregator. They provide standardized methods (send_payment, check_status, refund, etc.).
 
 ## 🧑‍💻 Usage Example
 ### 1. Client Initialization
