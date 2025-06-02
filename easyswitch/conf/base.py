@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from easyswitch.exceptions import ConfigurationError
 from easyswitch.types import Currency, Provider
@@ -71,7 +71,7 @@ class BaseConfigModel(BaseModel):
 class ProviderConfig(BaseConfigModel):
     """A configuration model for Providers."""
 
-    api_key: str
+    api_key: Optional[str] = None
     api_secret: Optional[str] = None
     token: Optional[str] = None
     base_url: Optional[str] = None
@@ -90,6 +90,18 @@ class ProviderConfig(BaseConfigModel):
                 "Environment must be 'sandbox' or 'production'"
             )
         return v
+
+    @model_validator(mode='before')
+    @classmethod
+    def check_keys(cls, v):
+        """ Ensure that at least one of api_key or api_secret is provided. """
+
+        if not (v.get("api_key") or v.get("api_secret")):
+            raise ConfigurationError(
+                "At least one of 'api_key' or 'api_secret' must be provided"
+            )
+        return v
+
 
 
 ####

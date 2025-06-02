@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import platform
 from types import ModuleType
 import urllib.parse
@@ -5,6 +6,7 @@ from importlib import metadata
 from typing import Union
 from pathlib import Path
 from importlib import import_module
+from phonenumbers.phonenumberutil import country_code_for_region, region_code_for_country_code
 
 try:
     __version__ = metadata.version('easyswitch')
@@ -29,18 +31,21 @@ def parse_phone(number:str, raise_exception = False):
         parsed_number = phonenumbers.parse(number,None)
         return {
             'country_code': parsed_number.country_code,
-            'national_number': parsed_number.national_number
+            'national_number': parsed_number.national_number,
+            'country_alpha2': region_code_for_country_code(parsed_number.country_code)
         }
     except phonenumbers.NumberParseException:
         # Raise an exception if needed
         if raise_exception:
             raise phonenumbers.NumberParseException(
-                'Invalid phone number'
+                msg='Invalid phone number'
             )
         return {
             'country_code': None,
-            'national_number': None
+            'national_number': None,
+            'country_alpha2': None
         }
+
 
 # DICT TO QUERY STRING
 def dict_to_encoded_query_string(data: dict) -> str:

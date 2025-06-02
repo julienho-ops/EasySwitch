@@ -4,8 +4,9 @@ EasySwitch - Shared Types and Data Structures.
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum, auto
-from typing import Any, Dict, List, Optional
+from enum import Enum
+from typing import Any, Dict, Optional
+
 
 
 ####
@@ -18,6 +19,7 @@ class Provider(str, Enum):
     BIZAO = 'BIZAO'
     CINETPAY = 'CINETPAY'
     PAYGATE = 'PAYGATE'
+    FEDAPAY = 'FEDAPAY'
 
 
 ####
@@ -82,6 +84,7 @@ class TransactionStatus(str, Enum):
     INITIATED = "initiated"
     UNKNOWN = "unknown"
     COMPLETED = "completed"
+    TRANSFERRED = "transferred"
 
 
 ####
@@ -116,6 +119,7 @@ class CustomerInfo:
     zip_code: Optional[str] = None
     state: Optional[str] = None
     id: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 ####
@@ -130,7 +134,7 @@ class PaymentResponse:
     status: TransactionStatus
     amount: float
     currency: Currency
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
     reference: Optional[str] = None
     payment_link: Optional[str] = None
@@ -176,7 +180,7 @@ class TransactionDetail:
     currency: Currency
     status: TransactionStatus = TransactionStatus.PENDING
     transaction_type: TransactionType = TransactionType.PAYMENT
-    created_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=datetime.now)
     updated_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     customer: Optional[CustomerInfo] = None
@@ -201,12 +205,10 @@ class WebhookEvent:
     status: TransactionStatus
     amount: float
     currency: Currency
-    created_at: datetime
+    created_at: Optional[datetime] = None
     raw_data: Dict[str, Any] = field(default_factory = dict)
     metadata: Dict[str, Any] = field(default_factory = dict)
     context: Dict[str,Any] = field(default_factory = dict)
-
-    # def get_status
 
 
 ####
@@ -249,3 +251,17 @@ class ApiCredentials:
             if env_value:
                 os.environ[f'EASYSWITCH_{provider.upper()}_{field.upper()}'] = env_value
         return self
+
+
+####
+##      PAGINATION META
+#####
+@dataclass
+class PaginationMeta:
+    """Standardized pagination metadata structure."""
+    current_page: int
+    next_page: Optional[int]
+    prev_page: Optional[int]
+    per_page: int
+    total_pages: int
+    total_count: int
