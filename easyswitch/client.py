@@ -8,10 +8,15 @@ from typing import Any, ClassVar, Dict, Optional, Union
 from easyswitch.adapters import AdaptersRegistry, BaseAdapter
 from easyswitch.conf import RootConfig
 from easyswitch.conf.manager import ConfigManager
-from easyswitch.exceptions import (AuthenticationError, ConfigurationError,
-                                   InvalidProviderError)
-from easyswitch.types import (Currency, CustomerInfo, PaymentResponse,
-                              Provider, TransactionStatus,TransactionDetail)
+from easyswitch.exceptions import (
+    AuthenticationError, ConfigurationError,
+    InvalidProviderError
+)
+from easyswitch.types import (
+    Currency, CustomerInfo, PaymentResponse,
+    Provider, TransactionStatus,TransactionDetail,
+    WebhookEvent
+)
 from easyswitch.integrators import load_adapter
 
 
@@ -239,19 +244,14 @@ class EasySwitch:
         provider: Optional[Provider] = None,
     ) -> PaymentResponse:
         """
-        Envoie une demande de paiement à un fournisseur spécifique.
+        Sends a payment request to a specific provider.
         
         Args:
-            provider: Le fournisseur de paiement à utiliser
-            amount: Le montant à payer
-            phone_number: Le numéro de téléphone du client
-            currency: La devise du paiement
-            reference: Référence unique pour le paiement
-            customer_info: Informations supplémentaires sur le client
-            metadata: Métadonnées personnalisées
+            transaction: The transaction object containing payment details
+            provider: The payment provider to use
             
         Returns:
-            PaymentResponse: Réponse de la demande de paiement
+            PaymentResponse: Response to the payment request
         """
         provider =  provider or transaction.provider or self.config.default_provider
         integrator = self._get_integrator(provider)
@@ -267,14 +267,14 @@ class EasySwitch:
         provider: Optional[Provider] = None, 
     ) -> TransactionStatus:
         """
-        Vérifie le statut d'une transaction.
+        Checks a transaction status.
         
         Args:
-            provider: Le fournisseur de paiement utilisé
-            transaction_id: L'identifiant de la transaction à vérifier
+            provider: The payment provider to use
+            transaction_id: The transaction ID to check
             
         Returns:
-            TransactionStatus: Le statut actuel de la transaction
+            TransactionStatus: The current status of the transaction
         """
         provider =  provider or self.config.default_provider
         integrator = self._get_integrator(provider)
@@ -288,11 +288,11 @@ class EasySwitch:
         provider: Optional[Provider] = None,
     ) -> bool:
         """
-        Annule une transaction si possible.
+        Cancel a transaction if supported.
         
         Args:
-            provider: Le fournisseur de paiement utilisé
-            transaction_id: L'identifiant de la transaction à annuler
+            provider: The payment provider to use
+            transaction_id: The transaction ID to cancel
             
         Returns:
             bool: True si l'annulation a réussi, False sinon
@@ -311,16 +311,17 @@ class EasySwitch:
         reason: Optional[str] = None
     ) -> PaymentResponse:
         """
-        Effectue un remboursement pour une transaction.
+        Performs a refund for a transaction.
+        This method allows you to refund a transaction either fully or partially.
         
         Args:
-            provider: Le fournisseur de paiement utilisé
-            transaction_id: L'identifiant de la transaction à rembourser
-            amount: Le montant à rembourser (si None, rembourse le montant total)
-            reason: La raison du remboursement
+            provider: The payment provider to use
+            transaction_id: The transaction ID to check
+            amount: The amount to refund (if None, refund full amount)
+            reason: reason for the refund (optional)
             
         Returns:
-            PaymentResponse: Réponse de la demande de remboursement
+            PaymentResponse: Response to the refund request
         """
         provider =  provider or self.config.default_provider
         integrator = self._get_integrator(provider)
@@ -329,5 +330,59 @@ class EasySwitch:
                 transaction_id=transaction_id,
                 amount=amount,
                 reason=reason
+            )
+        )
+    
+    def validate_webhook(
+        self,
+        payload: Dict[str, Any],
+        headers: Dict[str, Any],
+        provider: Optional[Provider] = None
+    ) -> bool:
+        """
+        Valide un événement de webhook.
+        
+        Args:
+            provider: The payment provider to use
+            payload: The payload of the webhook event
+            headers: The headers of the webhook request
+            
+        Returns:
+            bool: True if the webhook is valid, False elsewhere
+        """
+        provider =  provider or self.config.default_provider
+        integrator = self._get_integrator(provider)
+        return asyncio.run(
+            integrator.validate_webhook(
+                payload = payload,
+                headers = headers
+            )
+        )
+    
+    def parse_webhook(
+        self,
+        payload: Dict[str, Any],
+        headers: Dict[str, Any],
+        provider: Optional[Provider] = None
+    ) -> WebhookEvent:
+        """
+        Parse a webhook event and return a standardized WebhookEvent object.
+        This method validates and processes the webhook payload and headers 
+        to extract and return a WebhookEvent object.
+        
+        Args:
+            provider: The payment provider to use
+            payload: The payload of the webhook event
+            headers: The headers of the webhook request
+            
+        Returns:
+            WebhookEvent: Parsed webhook event object
+        """
+        provider =  provider or self.config.default_provider
+        integrator = self._get_integrator(provider)
+        return asyncio.run(
+            integrator.parse_webhook(
+                payload = payload,
+                headers = headers
             )
         )

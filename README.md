@@ -39,6 +39,9 @@ We will add progressively support for following Providers:
 - 🔐 Centralized management of API keys and credentials
 - 📈 Fully customizable logging (file, console, rotating, compression)
 - 🧩 Extensible via a plugin-like adapter registration system
+- ✅ Strong **Exception** handling
+- ✅ **Asynchronous** support for optimal performance
+- ✅ **Automatic Retry** in case of network failures
 
 ---
 
@@ -61,16 +64,71 @@ uv add easyswitch
 ## ⚙️ Configuration
 EasySwitch uses a centralized configuration object to define providers, credentials, default settings, and adapter mappings.
 
-### ⚙️ Configuration Options
+### **1. ⚙️ Supported Configuration sources**  
 
-You can configure EasySwitch using:
+| Source               | Description                                  | Example |
+|-----------------------|---------------------------------------------|---------|
+| **Environment Variables**   | Load configs from a `.env` file or System Environment | [see example](#-exemple-de-fichier-env) |
+| **Native Python Dictionary** | Direct configuration in your code          | [see exemple](#-configuration-depuis-un-dictionnaire) |
+| **JSON File**      | Load configs from a JSON file           | [see example](#-configuration-depuis-json) |
+| **YAML File**      | Load configs from a YAML file           | [see example](#-configuration-depuis-yaml) |
 
-1. .env file with environment variables
-2. A JSON configuration file
-3. A YAML configuration file
-4. A native Python dictionary
 
-### Example Configuration
+### **🔹 Example of `.env` file**
+
+```ini
+# This file is a sample. Copy it to .env and fill in the values.
+
+# General configuration
+EASYSWITCH_ENVIRONMENT=sandbox                  # or production
+EASYSWITCH_TIMEOUT=30                           # seconds
+EASYSWITCH_DEBUG=true                           # Enable debug mode
+
+# Logging configuration
+# Note: Logging configuration is only used if EASYSWITCH_LOGGING is set to true
+
+EASYSWITCH_LOGGING=true                         # Enable file logging
+EASYSWITCH_LOG_LEVEL=info                       # debug, info, warning, error
+EASYSWITCH_LOG_FILE=/var/log/easyswitch.log     # Path to the log file
+EASYSWITCH_CONSOLE_LOGGING=true                 # Enable console logging
+EASYSWITCH_LOG_MAX_SIZE=10                      # Maximum size of the log file in MB
+EASYSWITCH_LOG_BACKUPS=5                        # Number of backup log files to keep
+EASYSWITCH_LOG_COMPRESS=true                    # Whether to compress old log files
+EASYSWITCH_LOG_FORMAT=plain                     # Format of the log file (plain or json)
+EASYSWITCH_LOG_ROTATE=true                      # Whether to rotate the log file
+
+# Payment gateway configuration
+EASYSWITCH_ENABLED_PROVIDERS=cinetpay,semoa     # Comma-separated list of enabled payment providers
+EASYSWITCH_DEFAULT_PROVIDER=cinetpay            # Default payment provider
+EASYSWITCH_CURRENCY=XOF                         # Default currency
+
+# Providers configuration
+# NOTE: these are standadized variables for all providers. 
+
+# CINETPAY
+# Note: Only required if EASYSWITCH_ENABLED_PROVIDERS includes 'cinetpay'
+# You don't need to fill in all of these variables. Only fill in the ones you need.
+EASYSWITCH_CINETPAY_API_KEY=your_cinetpay_api_key
+EASYSWITCH_CINETPAY_X_SECRET=your_cinetpay_secret_key
+EASYSWITCH_CINETPAY_X_STIE_ID=your_cinetpay_site_id
+EASYSWITCH_CINETPAY_CALLBACK_URL=your_cinetpay_callback_url
+EASYSWITCH_CINETPAY_X_CHANNELS=ALL
+EASYSWITCH_CINETPAY_X_LANG=fr
+
+# SEMOA
+# Note: Only required if EASYSWITCH_ENABLED_PROVIDERS includes 'semoa'
+# You don't need to fill in all of these variables. Only fill in the ones you need.
+EASYSWITCH_SEMOA_API_KEY=your_semoa_api_key
+EASYSWITCH_SEMOA_X_CLIENT_ID=your_semoa_client_id
+EASYSWITCH_SEMOA_X_CLIENT_SECRET=your_semoa_client_secret
+EASYSWITCH_SEMOA_X_USERNAME=your_semoa_username
+EASYSWITCH_SEMOA_X_PASSWORD=your_semoa_password
+EASYSWITCH_SEMOA_X_CALLBACK_URL=your_semoa_callback_url   # Optional
+```
+
+---
+
+### **🔹 Example of python dictionary** 
 
 ```python
 from easyswitch import (
@@ -123,64 +181,31 @@ config = {
         },
     }
 }
+
+client = EasySwitch.from_dict(config)
 ```
 
-### Example `.env` file
-```ini
-# This file is a sample. Copy it to .env and fill in the values.
+---
 
-# General configuration
-EASYSWITCH_ENVIRONMENT=development              # or production
-EASYSWITCH_TIMEOUT=30                           # seconds
-EASYSWITCH_DEBUG=true                           # Enable debug mode
+### **🔹 Configuration from JSON file**  
 
-# Logging configuration
-# Note: Logging configuration is only used if EASYSWITCH_LOGGING is set to true
+```python
+client = EasySwitch.from_json("config.json")
+```
 
-EASYSWITCH_LOGGING=true                         # Enable file logging
-EASYSWITCH_LOG_LEVEL=info                       # debug, info, warning, error
-EASYSWITCH_LOG_FILE=/var/log/easyswitch.log     # Path to the log file
-EASYSWITCH_CONSOLE_LOGGING=true                 # Enable console logging
-EASYSWITCH_LOG_MAX_SIZE=10                      # Maximum size of the log file in MB
-EASYSWITCH_LOG_BACKUPS=5                        # Number of backup log files to keep
-EASYSWITCH_LOG_COMPRESS=true                    # Whether to compress old log files
-EASYSWITCH_LOG_FORMAT=plain                     # Format of the log file (plain or json)
-EASYSWITCH_LOG_ROTATE=true                      # Whether to rotate the log file
+---
 
-# Payment gateway configuration
-EASYSWITCH_ENABLED_PROVIDERS=cinetpay,semoa     # Comma-separated list of enabled payment providers
-EASYSWITCH_DEFAULT_PROVIDER=cinetpay            # Default payment provider
-EASYSWITCH_CURRENCY=XOF                         # Default currency
+### **🔹 Configuration from YAML file**  
 
-# Providers configuration
-# NOTE: these are standadized variables for all providers. 
-
-# CINETPAY
-# Note: Only required if EASYSWITCH_ENABLED_PROVIDERS includes 'cinetpay'
-# You don't need to fill in all of these variables. Only fill in the ones you need.
-EASYSWITCH_CINETPAY_API_KEY=your_cinetpay_api_key
-EASYSWITCH_CINETPAY_X_SECRET=your_cinetpay_secret_key
-EASYSWITCH_CINETPAY_X_STIE_ID=your_cinetpay_site_id
-EASYSWITCH_CINETPAY_CALLBACK_URL=your_cinetpay_callback_url
-EASYSWITCH_CINETPAY_X_CHANNELS=ALL
-EASYSWITCH_CINETPAY_X_LANG=fr
-
-# SEMOA
-# Note: Only required if EASYSWITCH_ENABLED_PROVIDERS includes 'semoa'
-# You don't need to fill in all of these variables. Only fill in the ones you need.
-EASYSWITCH_SEMOA_API_KEY=your_semoa_api_key
-EASYSWITCH_SEMOA_X_CLIENT_ID=your_semoa_client_id
-EASYSWITCH_SEMOA_X_CLIENT_SECRET=your_semoa_client_secret
-EASYSWITCH_SEMOA_X_USERNAME=your_semoa_username
-EASYSWITCH_SEMOA_X_PASSWORD=your_semoa_password
-EASYSWITCH_SEMOA_X_CALLBACK_URL=your_semoa_callback_url   # Optional
+```python
+client = EasySwitch.from_yaml("config.yaml")
 ```
 
 ## Adapters
-Adapters are pluggable classes that implement the logic for each payment aggregator. They provide standardized methods (send_payment, chech_status, refund, etc.).
+Adapters are pluggable classes that implement the logic for each payment aggregator. They provide standardized methods (send_payment, check_status, refund, etc.).
 
 ## 🧑‍💻 Usage Example
-### Example config
+### 1. Client Initialization
 
 ```python
 from easyswitch import EasySwitch
@@ -192,7 +217,6 @@ client = EasySwitch.from_json("config.json")
 
 # 3. from a Python dict
 config = {
-    "environment": "sandbox",
     "providers": {
         Provider.CINETPAY: {
             "api_key": "your_api_key",
@@ -223,7 +247,7 @@ config = RootConfig(...)
 client = EasySwitch.from_config(config)
 ```
 
-### Complete Example of payment Initialization
+### 2. Create transaction (Order)
 
 ```python
 from easyswitch import (
@@ -231,28 +255,6 @@ from easyswitch import (
     TransactionStatus, Currency, TransactionType,
     CustomerInfo
 )
-
-config = {
-    "environment": "sandbox",
-    "providers": {
-        Provider.CINETPAY: {
-            "api_key": "your_api_key",
-            "base_url": "https://api.exemple.com/v1", # Optional
-            "callback_url": "https://api.exemple.com/v1/callback",
-            "return_url": "https://api.exemple.com/v1/return",
-            "environment": "production"     # Optional sandbox by default
-            "extra": {
-                "secret": "your_secret",
-                "site_id": "your_site_id",
-                "channels": "ALL"     # More details on Cinetpay's documentation.
-                "lang": "fr"        # More details on Cinetpay's documentation.
-            }
-        }
-    }
-}
-
-# Initialize EasySwitch client
-client = EasySwitch.from_dict(config_dict = config)
 
 # Creating a Transaction
 t = TransactionDetail(
@@ -273,13 +275,18 @@ t = TransactionDetail(
     )
 )
 
+```
+
+---
+
+### 3. Initialize Payment
+
+```python
+
 # Initializing Payment
 res = client.send_payment(t)    # Will send payment request to CinetPay 
 print(res)
-```
 
-#### Result
-```python
 '''
 PaymentResponse(
     transaction_id = 'xveahdk-82998n9f8uhgj', 
@@ -319,7 +326,42 @@ PaymentResponse(
 '''
 ```
 
-## Road map
+---
+
+### 4. Check transaction status
+
+```python
+res = client.check_status(
+    t.id,   # Transaction ID
+    Provider.CINETPAY   # Optional default to default provider
+)
+```
+
+---
+
+### 5. Webhook Events management
+
+```python
+
+# Validate a webhook
+is_valid = client.validate_webhook(
+    provider = Provider.CINETPAY,
+    payload = request.body,
+    headers = request.headers
+)
+
+# Parse a Webhook
+event = client.parse_webhook(
+    provider = Provider.CINETPAY,
+    payload = request.body,
+    headers = request.headers
+)
+```
+
+---
+
+
+## Integration road map
 `EasySwitch` is still under heavy maintenance, we decided to ship it in this early stage so you can help us make it better.
 
 Add Support for following Providers:
@@ -336,9 +378,25 @@ Add Support for following Providers:
 - [ ] QOSPAY
 - [ ] Paydunya
 
+---
+
+## **📜 Licence**  
+
+MIT License.  
+
+---
+
+## **📞 Support**  
+
+For any question, please open a **Github issue**. 
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) guide for more information.
+
+🚀 **Simplify your payment integrations with EasySwitch !** 🚀
 
 <br>
 <p align = 'center'>
