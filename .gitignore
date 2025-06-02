@@ -10,4 +10,5 @@ Pipfile.lock
 build/*
 examples/*
 examples.py
+uv.lock
 .vscode/*
