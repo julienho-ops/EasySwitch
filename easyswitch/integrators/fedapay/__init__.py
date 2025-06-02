@@ -13,16 +13,19 @@ from easyswitch.exceptions import (
     CustomerError, LogError, PaymentError,
     UnsupportedOperationError, WebhookError, WebhookValidationError,
 )
+from easyswitch.integrators.fedapay.types import (
+    BalanceDetail, CurrencyResponse, CustomerSearchResponse, 
+    FedapayCustomerUpdate, FedapayTransactionUpdate, LogDetail, 
+    LogsResponse, PaymentLinkResponse, TransactionSearchResponse, 
+    WebhookDetail, WebhooksResponse
+)
+from easyswitch.integrators.fedapay.utils import FedapayCurrencyMapper
 from easyswitch.types import (
-    BalanceDetail, BalanceDetail, Currency, CurrencyResponse, CustomerInfo, 
-    CustomerSearchResponse, FedapayCustomerUpdate, FedapayTransactionUpdate, LogDetail, LogsResponse, 
-    PaginationMeta, PaymentLinkResponse, PaymentResponse,
-    Provider, TransactionDetail, TransactionSearchResponse, TransactionStatus,
-    TransactionStatusResponse, TransactionType, WebhookDetail,
-    WebhookEvent, WebhooksResponse,
+    Currency, CustomerInfo, PaginationMeta, PaymentResponse,
+    Provider, TransactionDetail, TransactionStatus,
+    TransactionStatusResponse, TransactionType, WebhookEvent,
 )
 from easyswitch.utils import parse_phone
-from easyswitch.utils.currency import FedapayCurrencyMapper
 
 
 ####
@@ -534,10 +537,34 @@ class FedapayAdapter(BaseAdapter):
         
         normalized_status = self.get_normalize_status(data.get("status"))
         
-        return TransactionDetail.from_fedapay_api(
-            {**data, "status": normalized_status},
+        return TransactionDetail(
+            transaction_id=data.get("id"),
+            provider=Provider.FEDAPAY,
+            amount=data.get("amount"),
+            currency=FedapayCurrencyMapper.get_iso(data.get("currency_id")),
+            status=normalized_status,
+            transaction_type=TransactionType.PAYMENT,
+            created_at=parser.parse(data.get("created_at")) if data.get("created_at") else None,
+            updated_at=parser.parse(data.get("updated_at")) if data.get("updated_at") else None,
+            completed_at=parser.parse(data.get("approved_at")) if data.get("approved_at") else None,
             customer=customer,
-            raw_response=raw_response
+            reference=data.get("reference"),
+            reason=data.get("description"),
+            callback_url=data.get("callback_url"),
+            metadata={k: v for k, v in data.items() if k not in {
+                "id", 
+                "amount", 
+                "currency", 
+                "status", 
+                "created_at", 
+                "updated_at",
+                "approved_at",
+                "customer_id", 
+                "reference", 
+                "reason",
+                "callback_url",
+            }},
+            raw_data=raw_response if raw_response is not None else data
         )
 
     async def get_transaction_detail(self, transaction_id: str) -> TransactionDetail:
@@ -772,7 +799,6 @@ class FedapayAdapter(BaseAdapter):
                     provider=self.provider_name(),
                     status=status,
                     amount = transaction_data.get("amount"),
-                    raw_response=response.data,
                     data=transaction_data
                 )
 

@@ -4,12 +4,9 @@ EasySwitch - Shared Types and Data Structures.
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum, auto
-from typing import Any, Dict, List, Optional
-from dateutil import parser
+from enum import Enum
+from typing import Any, Dict, Optional
 
-from easyswitch.utils import parse_phone
-from easyswitch.utils.currency import FedapayCurrencyMapper
 
 
 ####
@@ -102,7 +99,6 @@ class TransactionStatusResponse:
     status: TransactionStatus
     amount: float
     data: Dict[str, Any] = field(default_factory=dict)
-    raw_response: Dict[str, Any] = field(default_factory=dict)
 
 
 ####
@@ -184,7 +180,7 @@ class TransactionDetail:
     currency: Currency
     status: TransactionStatus = TransactionStatus.PENDING
     transaction_type: TransactionType = TransactionType.PAYMENT
-    created_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=datetime.now)
     updated_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     customer: Optional[CustomerInfo] = None
@@ -194,90 +190,6 @@ class TransactionDetail:
     return_url: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     raw_data: Dict[str, Any] = field(default_factory=dict)
-    
-    @staticmethod
-    def from_fedapay_api(
-        data: Dict[str, Any], 
-        customer: Optional[CustomerInfo] = None,
-        raw_response: Optional[Dict[str, Any]] = None
-    ) -> "TransactionDetail":
-        return TransactionDetail(
-            transaction_id=data.get("id"),
-            provider=Provider.FEDAPAY,
-            amount=data.get("amount"),
-            currency=FedapayCurrencyMapper.get_iso(data.get("currency_id")),
-            status=TransactionStatus(data.get("status", "pending")),
-            transaction_type=TransactionType.PAYMENT,
-            created_at=parser.parse(data.get("created_at")) if data.get("created_at") else None,
-            updated_at=parser.parse(data.get("updated_at")) if data.get("updated_at") else None,
-            completed_at=parser.parse(data.get("approved_at")) if data.get("approved_at") else None,
-            customer=customer or CustomerInfo(id=data.get("customer_id")),
-            reference=data.get("reference"),
-            reason=data.get("description"),
-            callback_url=data.get("callback_url"),
-            metadata={k: v for k, v in data.items() if k not in {
-                "id", 
-                "amount", 
-                "currency", 
-                "status", 
-                "created_at", 
-                "updated_at",
-                "approved_at",
-                "customer_id", 
-                "reference", 
-                "reason",
-                "callback_url",
-            }},
-            raw_data=raw_response if raw_response is not None else data
-        )
-
-
-####
-##      FEDAPAY TRANSACTION UPDATE DETAIL
-#####
-@dataclass
-class FedapayTransactionUpdate:
-    """ Standardized FedaPay's transaction update structure. """
-    amount: Optional[float] = None
-    status: Optional[TransactionStatus] = None
-    description: Optional[str] = None
-    callback_url: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-####
-##      FEDAPAY CUSTOMER UPDATE DETAIL
-#####
-@dataclass
-class FedapayCustomerUpdate:
-    """Standardized FedaPay's customer update structure."""
-    firstname: str
-    lastname: str
-    email: Optional[str] = None
-    phone_number: Optional[str] = None
-
-    def to_payload(self) -> Dict[str, Any]:
-        """Prépare le payload pour l'API FedaPay en ne gardant que les champs renseignés."""
-        payload = {}
-        
-        payload["firstname"] = self.firstname
-        payload["lastname"] = self.lastname
-        
-        if self.email is not None:
-            payload["email"] = self.email
-        
-        # Parse the phone number using the utility function
-        parsed_phone = parse_phone(
-            self.phone_number,
-            raise_exception=True
-        )
-        
-        payload["phone_number"] = {
-            "number": parsed_phone.get("national_number"),
-            "country": parsed_phone.get("country_alpha2")
-        } if parsed_phone else {}
-        
-        return payload
 
 
 ####
@@ -297,8 +209,6 @@ class WebhookEvent:
     raw_data: Dict[str, Any] = field(default_factory = dict)
     metadata: Dict[str, Any] = field(default_factory = dict)
     context: Dict[str,Any] = field(default_factory = dict)
-
-    # def get_status
 
 
 ####
@@ -344,146 +254,14 @@ class ApiCredentials:
 
 
 ####
-##      CURRENCY RESPONSE
-#####
-@dataclass
-class CurrencyResponse:
-    """Standardized Currency response structure."""
-
-    currency_id: str
-    name: str
-    provider: Provider
-    iso: Currency
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    modes: List[str] = field(default_factory=list)
-    raw_response: Dict[str, Any] = field(default_factory=dict)
-    
-    def __post_init__(self):
-        """Ensure modes are unique and always a list."""
-        if not isinstance(self.modes, list):
-            self.modes = list(self.modes) if self.modes is not None else []
-        self.modes = list(set(self.modes))
-    
-
-####
 ##      PAGINATION META
 #####
 @dataclass
 class PaginationMeta:
+    """Standardized pagination metadata structure."""
     current_page: int
     next_page: Optional[int]
     prev_page: Optional[int]
     per_page: int
     total_pages: int
     total_count: int
-
-
-####
-##      CUSTOMER SEARCH RESPONSE
-#####
-@dataclass
-class CustomerSearchResponse:
-    customers: List[CustomerInfo]
-    meta: PaginationMeta
-
-
-####
-##      TRANSACTION SEARCH RESPONSE
-#####
-@dataclass
-class TransactionSearchResponse:
-    transactions: List[TransactionDetail]
-    meta: PaginationMeta
-
-
-#####
-##      PAYMENT LINK RESPONSE
-#####
-@dataclass
-class PaymentLinkResponse:
-    """ Standardized Payment Link response structure."""
-    token: str
-    url: str
-    raw_response: Optional[Dict[str, Any]] = None
-
-
-#####
-##      BALANCE DETAIL
-#####
-@dataclass
-class BalanceDetail:
-    id: int
-    amount: float
-    mode: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    provider: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    raw_response: Optional[Dict[str, Any]] = None
-
-
-#####
-##      LOG DETAIL
-#####
-@dataclass
-class LogDetail:
-    """Standardized log detail structure."""
-
-    id: int
-    method: str
-    url: str
-    status: str
-    ip_address: str
-    version: str
-    provider: Provider
-    source: str
-    query: Optional[Dict[str, Any]] = None
-    body: Optional[str] = None
-    response: Optional[str] = None
-    account_id: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    raw_response: Dict[str, Any] = field(default_factory=dict)
-
-
-####
-##      ALL LOGS RESPONSE
-#####
-@dataclass
-class LogsResponse:
-    """Standardized response structure for logs."""
-    logs: List[LogDetail]
-    meta: PaginationMeta
-
-
-#####
-##      WEBHOOK DETAIL
-#####
-@dataclass
-class WebhookDetail:
-    """Standardized webhook detail structure."""
-
-    id: int
-    url: str
-    provider: Provider
-    enabled: bool
-    ssl_verify: bool
-    disable_on_error: bool
-    account_id: int
-    http_headers: Dict[str, Any] = field(default_factory=dict)
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    raw_response: Dict[str, Any] = field(default_factory=dict)
-
-
-####
-##      ALL WEBHOOK RESPONSE
-#####
-@dataclass
-class WebhooksResponse:
-    """Standardized response structure for webhooks."""
-    webhooks: List[WebhookDetail]
-    meta: PaginationMeta
