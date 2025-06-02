@@ -370,7 +370,7 @@ Add Support for following Providers:
 - [x] Bizao
 - [x] Semoa
 - [x] PayGate
-- [ ] Fedapay
+- [x] Fedapay
 - [ ] Kkiapay
 - [ ] MTN
 - [ ] Orange
