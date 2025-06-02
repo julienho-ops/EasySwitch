@@ -4,7 +4,13 @@ from easyswitch.types import (
     Currency, CustomerInfo, Countries,
     Provider, TransactionStatus,
     TransactionStatusResponse,
-    TransactionType
+    TransactionType, WebhookEvent,
+    CurrencyResponse, PaginationMeta,
+    CustomerSearchResponse, TransactionSearchResponse,
+    PaymentLinkResponse, BalanceDetail,
+    LogDetail, LogsResponse,
+    WebhookDetail, WebhooksResponse
+    
 )
 
 
@@ -19,5 +25,16 @@ __all__ = [
     'CustomerInfo',
     'Countries',
     'Currency',
-    'Provider'
+    'Provider',
+    'WebhookEvent',
+    'CurrencyResponse',
+    'PaginationMeta',
+    'CustomerSearchResponse',
+    'TransactionSearchResponse',
+    'PaymentLinkResponse',
+    'BalanceDetail',
+    'LogDetail',
+    'LogsResponse',
+    'WebhookDetail',
+    'WebhooksResponse',
 ]
