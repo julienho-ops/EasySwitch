@@ -95,6 +95,21 @@ class PaymentError(APIError):
     pass
 
 
+class WebhookError(APIError):
+    """Webhook error when processing a webhook operation."""
+    pass
+
+
+class CustomerError(APIError):
+    """Customer error when processing a customer creation."""
+    pass
+
+
+class CurrencyError(APIError):
+    """Currency error when processing a transaction with an unsupported currency."""
+    pass
+
+
 class RefundError(APIError):
     """Refund error when processing a refund."""
     pass
@@ -102,6 +117,16 @@ class RefundError(APIError):
 
 class CancellationError(APIError):
     """Cancellation error when processing a cancellation."""
+    pass
+
+
+class BalanceError(APIError):
+    """Balance error when processing a balance operation."""
+    pass
+
+
+class LogError(APIError):
+    """Log error when processing a log operation."""
     pass
 
 
