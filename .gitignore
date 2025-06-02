@@ -12,3 +12,4 @@ examples/*
 examples.py
 uv.lock
 .vscode/*
+*.pyc
