@@ -5,8 +5,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name = 'iSwitch',
-    version = '1.0.7',
+    name = 'easyswitch',
+    version = '0.1.0',
     packages = find_packages(),
     install_requires = [
         'httpx',
@@ -18,5 +18,5 @@ setup(
     author = '#Einswilli',
     author_email = 'einswilligoeh@email.com',
     description = 'SwitchPay Python SDK for AllDotPy internal use. ',
-    url = 'https://github.com/AllDotPy/iSwitch.git',
+    url = 'https://github.com/AllDotPy/EasySwitch.git',
 )
