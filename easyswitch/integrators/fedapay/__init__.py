@@ -217,9 +217,7 @@ class FedapayAdapter(BaseAdapter):
                 json_data=customer,
                 headers=self.get_headers(authorization=True)
             )
-            
-            print(response)
-                        
+                                    
             if response.status in range(200, 300):
                 customer_data: Dict[str, Any] = response.data.get("v1/customer", {})
                 
@@ -360,9 +358,7 @@ class FedapayAdapter(BaseAdapter):
                 endpoint=self.ENDPOINTS["get_customer"].format(id=customer_id),
                 headers=self.get_headers(authorization=True)
             )
-            
-            print(response)
-            
+                        
             if response.status in range(200, 300):
                 customer_data: Dict[str, Any] = response.data.get("v1/customer", {})
                 
@@ -1070,7 +1066,7 @@ class FedapayAdapter(BaseAdapter):
         
         secret = self.config.extra.get("webhook_secret")
         if not secret:
-            raise WebhookValidationError("Webhook secret is missing")
+            raise WebhookValidationError("Webhook secret is missing in configuration")
         return secret
         
     def compare_signatures(
@@ -1088,9 +1084,11 @@ class FedapayAdapter(BaseAdapter):
         Raises:
             AuthenticationError: If the webhook secret is not configured or if the signatures do not match.
         """
+        
+        webhook_secret = self.get_webhook_secret()
 
         computed_signature = hmac.new(
-            key=self.config.extra.get("webhook_secret", "").encode('utf-8'),
+            key=webhook_secret.encode('utf-8'),
             msg=payload_str.encode('utf-8'),
             digestmod=hashlib.sha256
         ).hexdigest()
