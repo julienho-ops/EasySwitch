@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://your-docs-url.com/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/assets/old_pages/index_/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/assets/old_pages/index_/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/assets/old_pages/index_/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/assets/old_pages/fr/index_/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/assets/old_pages/fr/index_/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/assets/old_pages/fr/index_/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/getting-started/configuration/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/getting-started/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/getting-started/configuration/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/getting-started/installation/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/getting-started/installation/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/getting-started/installation/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/fr/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/fr/assets/old_pages/index_/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/assets/old_pages/index_/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/assets/old_pages/index_/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/fr/assets/old_pages/fr/index_/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/assets/old_pages/fr/index_/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/assets/old_pages/fr/index_/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/fr/getting-started/configuration/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/getting-started/configuration/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/getting-started/configuration/"/>
+    </url>
+    <url>
+        <loc>https://your-docs-url.com/fr/getting-started/installation/</loc>
+        <lastmod>2025-06-06</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://your-docs-url.com/fr/getting-started/installation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://your-docs-url.com/getting-started/installation/"/>
+    </url>
+</urlset>
