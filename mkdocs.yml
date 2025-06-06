@@ -22,7 +22,7 @@ theme:
     - navigation.tracking
     - navigation.prune
 
-    - toc.integrate
+    # - toc.integrate
     - toc.follow
 
     # SEARCH
@@ -63,32 +63,33 @@ extra_css:
   - assets/stylesheets/theme.v3.css
 
 # NAVIGATION
-nav_translations:
-  # English translations
-  en:
-    - Home: index.md
-    - Getting Started:
-        - Installation: getting-started/installation.md
-        - Configuration: getting-started/configuration.md
-    - Guides:
-        - Payments: guides/payments.md
-        - Webhooks: guides/webhooks.md
-        - Error Handling: guides/error-handling.md
-    - API Reference: api-reference.md
-    - Contributing: contributing.md
+# nav_translations:
+nav:
+  # # English translations
+  # en:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+  - Guides:
+      - Payments: guides/payments.md
+      - Webhooks: guides/webhooks.md
+      - Error Handling: guides/error-handling.md
+  - API Reference: api-reference.md
+  - Contributing: contributing.md
 
   # French translations
-  fr:
-    - Accueil: index.md
-    - Démarrage:
-        - Installation: getting-started/installation.md
-        - Configuration: getting-started/configuration.md
-    - Guides:
-        - Paiements: guides/payments.md
-        - Webhooks: guides/webhooks.md
-        - Gestion des erreurs: guides/error-handling.md
-    - Référence API: api-reference.md
-    - Contribuer: contributing.md
+  # fr:
+  #   - Accueil: index.md
+  #   - Démarrage:
+  #       - Installation: getting-started/installation.md
+  #       - Configuration: getting-started/configuration.md
+  #   - Guides:
+  #       - Paiements: guides/payments.md
+  #       - Webhooks: guides/webhooks.md
+  #       - Gestion des erreurs: guides/error-handling.md
+  #   - Référence API: api-reference.md
+  #   - Contribuer: contributing.md
 
 markdown_extensions:
   - admonition
@@ -139,7 +140,7 @@ extra:
 
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ton-org/easyswitch
+      link: https://github.com/AllDotPy/easyswitch
       name: EasySwitch on GitHub
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/easyswitch

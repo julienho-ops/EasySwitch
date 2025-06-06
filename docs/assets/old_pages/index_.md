@@ -1,29 +1,33 @@
 ---
-description: The official documentation for AtlasOS
+description: The official documentation for EasySwitch
 icon: material/home
 ---
 
-# :material-home: EasySwitch Documentation
+# Welcome to EasySwitch Documentation!
+
+**Simplify transactions, master configurations, switch easily.**
+
+**EasySwitch** is a unified Python SDK for Mobile Money integration across major aggregators in West Africa. It provides a single, consistent interface to simplify payment processing, reduce code duplication, and accelerate development.
 
 <div class="grid cards" markdown>
 
--   :material-power:{ .lg .middle } __Install AtlasOS__
+-   :material-power:{ .lg .middle } __English__
 
     ---
 
-    Get started with setting up **EasySwitch** in just a few minutes.
+    Contiue reading **EasySwitch** documentation in **English**.
 
-    [-> Install EasySwitch](getting-started/installation.md)
+    [-> Get started](en/)
 
--   :material-wrench:{ .lg .middle } __Post Installation__
+-   :material-wrench:{ .lg .middle } __Français__
 
     ---
 
-    Customize and tweak your AtlasOS installation to your liking.
+    Lire la documentation de **EasySwitch** en **Français**
 
-    [-> Post Installation](getting-started/post-installation/atlas-folder/general-configuration.md)
+    [-> Commencer](fr/)
 
--   :material-chat-question:{ .lg .middle } __Frequently Asked Questions__
+<!-- -   :material-chat-question:{ .lg .middle } __Frequently Asked Questions__
 
     ---
 
@@ -37,7 +41,7 @@ icon: material/home
 
     Learn how you can contribute to AtlasOS, and do so effectively.
 
-    [-> Contribution Guidelines](contributing/contribution-guidelines.md)
+    [-> Contribution Guidelines](contributing/contribution-guidelines.md) -->
 
 </div>
 
