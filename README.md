@@ -48,7 +48,6 @@ We will add progressively support for following Providers:
 ## Community & Support 💬
 
 - [Documentation](https://alldotpy.github.io/EasySwitch/) 📚 (under contructions.)
-<!-- - [Discord Community](https://discord.gg/GRez7BTZVy) 💬 -->
 - [Issue Tracker](https://github.com/AllDotPy/EasySwitch/issues) 🐛
 
 ---
