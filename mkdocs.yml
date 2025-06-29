@@ -117,17 +117,17 @@ markdown_extensions:
 
 plugins:
   - search
-  - i18n:
-      default_language: en
-      languages:
-        - locale: en
-          name: English
-          default: true
-          build: true
-        - locale: fr
-          name: Français
-          default: false
-          build: true
+  # - i18n:
+  #     default_language: en
+  #     languages:
+  #       - locale: en
+  #         name: English
+  #         default: true
+  #         build: true
+  #       - locale: fr
+  #         name: Français
+  #         default: false
+  #         build: true
 
   # - macros:
       # on_error_fail: true
