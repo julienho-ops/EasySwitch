@@ -23,7 +23,7 @@ USER_AGENT = (
 
 ####    PARSE PHONE NUMBER
 def parse_phone(number:str, raise_exception = False):
-    ''' Return A dict of countrycode and national number '''
+    ''' Return A dict of country code, national number and country alpha2 '''
     
     import phonenumbers
 
