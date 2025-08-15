@@ -1,0 +1,149 @@
+site_name: EasySwitch SDK
+site_url: https://your-docs-url.com
+repo_url: https://github.com/AllDotPy/EasySwitch
+repo_name: EasySwitch
+
+theme:
+  name: material
+
+  # LOGO AND FAVICON
+  logo: assets/logo/dotpy_blue_transparent.png
+  favicon: assets/logo/dotpy_blue_transparent.png
+  language: en
+  features:
+    # - navigation.tabs
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - navigation.tabs
+    - navigation.sections
+    - navigation.tracking
+    - navigation.prune
+
+    # - toc.integrate
+    - toc.follow
+
+    # SEARCH
+    - search.suggest
+    - search.highlight
+
+    # CODE
+    - code.copy
+    - code.annotate
+    - code.tabs
+    - code.expand
+    - content.code.copy
+    - content.code.select
+
+    # CONTENT ACTIONS
+    - content.action.edit
+    - content.action.view
+
+  # PALETTE
+  palette:
+    - scheme: slate
+      primary: indigo
+      accent: light blue
+
+  # FONTS
+  font:
+    text: Inter
+    code: Chivo Mono
+
+# Extra JS files
+extra_javascript:
+  - assets/javascript/msdl.v1.js
+  - assets/javascript/init_kapa_widget.v2.js
+
+# Extra CSS files
+extra_css:
+  - assets/stylesheets/msdl.v2.css
+  - assets/stylesheets/theme.v3.css
+
+# NAVIGATION
+# nav_translations:
+nav:
+  # # English translations
+  # en:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+  - Guides:
+      - Payments: guides/payments.md
+      - Webhooks: guides/webhooks.md
+      - Error Handling: guides/error-handling.md
+  - API Reference: api-reference.md
+  - Contributing: contributing.md
+
+  # French translations
+  # fr:
+  #   - Accueil: index.md
+  #   - Démarrage:
+  #       - Installation: getting-started/installation.md
+  #       - Configuration: getting-started/configuration.md
+  #   - Guides:
+  #       - Paiements: guides/payments.md
+  #       - Webhooks: guides/webhooks.md
+  #       - Gestion des erreurs: guides/error-handling.md
+  #   - Référence API: api-reference.md
+  #   - Contribuer: contributing.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      # Use Twemoji for emojis
+      # This is the default, but explicitly specifying for clarity
+      # emoji_index: !!python/name:material.extensions.emoji.twemoji
+      # emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+  #
+  - abbr
+  - attr_list
+  - md_in_html
+
+plugins:
+  - search
+  # - i18n:
+  #     default_language: en
+  #     languages:
+  #       - locale: en
+  #         name: English
+  #         default: true
+  #         build: true
+  #       - locale: fr
+  #         name: Français
+  #         default: false
+  #         build: true
+
+  # - macros:
+      # on_error_fail: true
+      # include_dir: includes
+
+# Extra metadata
+extra:
+  version: 1.0.0
+  description: Documentation for the EasySwitch SDK, a Python library for easy payment integration.
+
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/AllDotPy/easyswitch
+      name: EasySwitch on GitHub
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/easyswitch
+      name: EasySwitch on X
+
+  

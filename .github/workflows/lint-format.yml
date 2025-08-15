@@ -1,35 +1,35 @@
-# name: Lint & Format
+name: Lint & Format
 
-# on:
-#   push:
-#     branches: [master]
-#   pull_request:
-#     branches: [master]
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
 
-# jobs:
-#   lint-format:
-#     name: Lint, Format, and Type Check
-#     runs-on: ubuntu-latest
+jobs:
+  lint-format:
+    name: Lint, Format, and Type Check
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-#       - name: Set up Python
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: '3.13'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
 
-#       - name: Install dependencies
-#         run: |
-#           python -m pip install --upgrade pip
-#           pip install black isort mypy
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort mypy
 
-#       - name: Run black
-#         run: black .
+      - name: Run black
+        run: black .
 
-#       - name: Run isort
-#         run: isort .
+      - name: Run isort
+        run: isort .
 
-#       - name: Run mypy
-#         run: mypy .
+    #   - name: Run mypy
+    #     run: mypy .
