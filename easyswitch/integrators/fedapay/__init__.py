@@ -400,7 +400,7 @@ class FedapayAdapter(BaseAdapter):
             "currency": {'iso': transaction.currency},
             "description": transaction.reason,
             "callback_url": transaction.callback_url or self.config.callback_url,
-            "metadata": transaction.metadata,
+            "custom_metadata": transaction.metadata,
             "customer": {
                 "id": transaction.customer.id,
                 "email": transaction.customer.email,
