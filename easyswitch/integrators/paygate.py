@@ -153,7 +153,7 @@ class PayGateAdapter(BaseAdapter):
                 amount=payload["amount"],
                 currency=transaction.currency,
                 reference=response.data.get("tx_reference"),
-                payment_link=None,  # Pas de lien pour la méthode directe
+                payment_link=None,
                 transaction_token=None,
                 customer=transaction.customer,
                 raw_response=response.data,
@@ -262,7 +262,6 @@ class PayGateAdapter(BaseAdapter):
         if not payload or not headers:
             raise AuthenticationError(
                 message="Invalid payload or headers",
-                provider=self.provider_name()
             )
 
         # PayGate doesn't use HMAC signature in webhooks,
@@ -270,8 +269,7 @@ class PayGateAdapter(BaseAdapter):
         required_fields = ["tx_reference", "identifier", "amount", "status"]
         if not all(field in payload for field in required_fields):
             raise AuthenticationError(
-                message="Missing required fields in webhook payload",
-                provider=self.provider_name()
+                message="Missing required fields in webhook payload"
             )
 
         return True
@@ -281,7 +279,6 @@ class PayGateAdapter(BaseAdapter):
         if not self.validate_webhook(payload, headers):
             raise AuthenticationError(
                 message="Invalid webhook payload",
-                provider=self.provider_name()
             )
 
         return WebhookEvent(
@@ -322,15 +319,13 @@ class PayGateAdapter(BaseAdapter):
     async def refund(self, transaction_id: str, amount: Optional[float] = None) -> PaymentResponse:
         """Refund is not directly supported via API according to documentation."""
         raise UnsupportedOperationError(
-            message="PayGate does not support API refunds. Use dashboard instead.",
-            provider=self.provider_name()
+            message="PayGate does not support API refunds. Use dashboard instead."
         )
 
     async def cancel_transaction(self, transaction_id: str) -> None:
         """Cancellation not supported via API."""
         raise UnsupportedOperationError(
-            message="Transaction cancellation must be done manually in PayGate dashboard",
-            provider=self.provider_name()
+            message="Transaction cancellation must be done manually in PayGate dashboard"
         )
 
     def _dict_to_query(self, params: Dict[str, Any]) -> str:
