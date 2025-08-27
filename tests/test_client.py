@@ -115,7 +115,7 @@ def test_client_from_multi_sources(tmp_path, sample_config_dict):
     assert client.config.timeout == 30
     assert client.config.environment == "production"
 
-# Tests de fonctionnalités
+# Feature tests
 @pytest.mark.asyncio
 async def test_send_payment(sample_config_dict, sample_transaction, mock_cinetpay_adapter):
     """Test payment sending"""
@@ -190,7 +190,7 @@ async def test_payment_error(sample_config_dict, sample_transaction, mock_cinetp
             **sample_transaction
         )
 
-# Tests de validation
+# Validation tests
 def test_validate_providers(sample_config_dict):
     """Test provider validation"""
     client = EasySwitch.from_dict(sample_config_dict)
@@ -207,7 +207,7 @@ def test_missing_default_provider():
     client = EasySwitch.from_dict(config)
     assert client.config.default_provider == "cinetpay"  # Should be auto-set
 
-# Tests d'intégration (avec des mocks)
+# Integration tests (with mocks)
 @pytest.mark.asyncio
 async def test_full_payment_flow(sample_config_dict, sample_transaction, mock_cinetpay_adapter):
     """Test complete payment flow"""

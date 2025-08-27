@@ -37,7 +37,7 @@ class FedapayCustomerUpdate:
     phone_number: Optional[str] = None
 
     def to_payload(self) -> Dict[str, Any]:
-        """Prépare le payload pour l'API FedaPay en ne gardant que les champs renseignés."""
+        """Prepares the payload for the FedaPay API by keeping only the filled fields."""
         payload = {}
         
         payload["firstname"] = self.firstname

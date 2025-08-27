@@ -37,13 +37,13 @@ def validate_phone_number(
             field="phone_number"
         )
     
-    # Gérer les préfixes selon le pays
+    # Handle country prefixes
     if country_code:
         country_code = country_code.upper()
         prefixes = {
-            "CI": "225", # Côte d'Ivoire
-            "SN": "221", # Sénégal
-            "BJ": "229", # Bénin
+            "CI": "225", # Ivory Coast
+            "SN": "221", # Senegal
+            "BJ": "229", # Benin
             "TG": "228", # Togo
             "BF": "226", # Burkina Faso
             "ML": "223", # Mali
@@ -52,11 +52,11 @@ def validate_phone_number(
             "NG": "234"  # Nigeria
         }
         
-        # Ajouter le préfixe du pays si nécessaire
+        # Add country prefix if necessary
         if country_code in prefixes:
             prefix = prefixes[country_code]
             if not cleaned.startswith(prefix):
-                # Si le numéro commence par un 0, le remplacer par le préfixe
+                # If the number starts with 0, replace it with the prefix
                 if cleaned.startswith('0'):
                     cleaned = prefix + cleaned[1:]
                 else:
@@ -67,29 +67,29 @@ def validate_phone_number(
 
 def validate_amount(amount: Union[float, int, str], min_value: float = 0.01) -> float:
     """
-    Valide un montant.
+    Validates an amount.
     
     Args:
-        amount: Montant à valider
-        min_value: Valeur minimale autorisée
+        amount: Amount to validate
+        min_value: Minimum allowed value
         
     Returns:
-        float: Montant validé
+        float: Validated amount
         
     Raises:
-        ValidationError: Si le montant est invalide
+        ValidationError: If the amount is invalid
     """
     try:
         amount_float = float(amount)
     except (ValueError, TypeError):
         raise ValidationError(
-            message="Le montant doit être un nombre",
+            message="Amount must be a number",
             field="amount"
         )
     
     if amount_float < min_value:
         raise ValidationError(
-            message=f"Le montant doit être supérieur ou égal à {min_value}",
+            message=f"Amount must be greater than or equal to {min_value}",
             field="amount"
         )
     
@@ -98,27 +98,27 @@ def validate_amount(amount: Union[float, int, str], min_value: float = 0.01) -> 
 
 def validate_currency(currency: str, supported_currencies: Optional[list] = None) -> str:
     """
-    Valide un code de devise.
+    Validates a currency code.
     
     Args:
-        currency: Code de devise à valider
-        supported_currencies: Liste de devises prises en charge
+        currency: Currency code to validate
+        supported_currencies: List of supported currencies
         
     Returns:
-        str: Code de devise validé
+        str: Validated currency code
         
     Raises:
-        ValidationError: Si la devise est invalide
+        ValidationError: If the currency is invalid
     """
     currency_upper = currency.upper()
     
-    # Liste par défaut des devises prises en charge si aucune n'est fournie
+    # Default list of supported currencies if none provided
     if supported_currencies is None:
         supported_currencies = ["XOF", "XAF", "NGN", "GHS", "EUR", "USD"]
     
     if currency_upper not in supported_currencies:
         raise ValidationError(
-            message=f"Devise non prise en charge: {currency}. Devises valides: {', '.join(supported_currencies)}",
+            message=f"Unsupported currency: {currency}. Valid currencies: {', '.join(supported_currencies)}",
             field="currency"
         )
     
@@ -127,37 +127,37 @@ def validate_currency(currency: str, supported_currencies: Optional[list] = None
 
 def validate_reference(reference: str, max_length: int = 50) -> str:
     """
-    Valide une référence de transaction.
+    Validates a transaction reference.
     
     Args:
-        reference: Référence à valider
-        max_length: Longueur maximale autorisée
+        reference: Reference to validate
+        max_length: Maximum allowed length
         
     Returns:
-        str: Référence validée
+        str: Validated reference
         
     Raises:
-        ValidationError: Si la référence est invalide
+        ValidationError: If the reference is invalid
     """
     if not reference or not isinstance(reference, str):
         raise ValidationError(
-            message="La référence ne peut pas être vide",
+            message="Reference cannot be empty",
             field="reference"
         )
     
-    # Supprimer les espaces en début et fin
+    # Remove leading and trailing spaces
     reference = reference.strip()
     
     if len(reference) > max_length:
         raise ValidationError(
-            message=f"La référence est trop longue (maximum {max_length} caractères)",
+            message=f"Reference is too long (maximum {max_length} characters)",
             field="reference"
         )
     
-    # Vérifier que la référence ne contient que des caractères autorisés
+    # Check that the reference contains only allowed characters
     if not re.match(r'^[a-zA-Z0-9_\-\.]+$', reference):
         raise ValidationError(
-            message="La référence ne doit contenir que des lettres, chiffres, tirets, points et underscores",
+            message="Reference must contain only letters, numbers, hyphens, dots and underscores",
             field="reference"
         )
     
@@ -171,23 +171,23 @@ def validate_webhook_signature(
     algorithm: str = 'sha256'
 ) -> bool:
     """
-    Valide la signature d'un webhook.
+    Validates a webhook signature.
     
     Args:
-        payload: Charge utile du webhook
-        signature: Signature à valider
-        secret: Clé secrète pour la vérification
-        algorithm: Algorithme de hachage à utiliser
+        payload: Webhook payload
+        signature: Signature to validate
+        secret: Secret key for verification
+        algorithm: Hashing algorithm to use
         
     Returns:
-        bool: True si la signature est valide, False sinon
+        bool: True if signature is valid, False otherwise
     """
     if isinstance(payload, dict):
         payload = bytes(repr(payload).encode('utf-8'))
     elif isinstance(payload, str):
         payload = bytes(payload.encode('utf-8'))
     
-    # Calculer le HMAC
+    # Calculate HMAC
     if algorithm.lower() == 'sha256':
         computed_signature = hmac.new(
             secret.encode('utf-8'),
@@ -201,31 +201,31 @@ def validate_webhook_signature(
             hashlib.sha512
         ).hexdigest()
     else:
-        raise ValueError(f"Algorithme non pris en charge: {algorithm}")
+        raise ValueError(f"Unsupported algorithm: {algorithm}")
     
-    # Comparer les signatures
+    # Compare signatures
     return hmac.compare_digest(computed_signature, signature.lower())
 
 
 def validate_email(email: str) -> str:
     """
-    Valide une adresse e-mail.
+    Validates an email address.
     
     Args:
-        email: Adresse e-mail à valider
+        email: Email address to validate
         
     Returns:
-        str: Adresse e-mail validée
+        str: Validated email address
         
     Raises:
-        ValidationError: Si l'adresse e-mail est invalide
+        ValidationError: If the email address is invalid
     """
-    # Regex simple pour la validation d'e-mail
+    # Simple regex for email validation
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     
     if not re.match(email_pattern, email):
         raise ValidationError(
-            message="Adresse e-mail invalide",
+            message="Invalid email address",
             field="email"
         )
     

@@ -288,7 +288,7 @@ class BaseAdapter(abc.ABC):
             (Note: Not all providers require a reason)
             
         Returns:
-            PaymentResponse: Réponse de la demande de remboursement
+            PaymentResponse: Refund request response
         """
         pass
     

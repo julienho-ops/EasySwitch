@@ -1,5 +1,5 @@
 """
-EasySwitch - Intégrateur pour MTN Mobile Money
+EasySwitch - MTN Mobile Money Integrator
 """
 import base64
 import hashlib
@@ -21,11 +21,11 @@ from easyswitch.utils.http import HTTPClient
 
 
 class MTNIntegrator(BaseAdapter):
-    """Intégrateur pour MTN Mobile Money API."""
+    """Integrator for MTN Mobile Money API."""
     
     def __init__(self, config: Config):
         """
-        Initialise l'intégrateur MTN.
+        Initialize the MTN integrator.
         
         Args:
             config: Configuration du SDK
@@ -60,10 +60,10 @@ class MTNIntegrator(BaseAdapter):
         """
         now = datetime.now()
         
-        # Si le token n'existe pas ou est expiré, en demander un nouveau
+        # If token doesn't exist or is expired, request a new one
         if not self._auth_token or not self._token_expires_at or self._token_expires_at <= now:
             try:
-                # Générer une paire de clés éphémères pour l'authentification
+                # Generate ephemeral key pair for authentication
                 subscription_key = self.api_key
                 
                 # Obtenir le token d'authentification
@@ -78,15 +78,15 @@ class MTNIntegrator(BaseAdapter):
                 )
                 
                 if "access_token" not in response:
-                    raise AuthenticationError("Token d'authentification MTN non reçu")
+                    raise AuthenticationError("MTN authentication token not received")
                 
                 self._auth_token = response["access_token"]
-                # Token valide pendant 1h (3600 sec)
+                # Token valid for 1h (3600 sec)
                 expires_in = int(response.get("expires_in", 3600))
-                self._token_expires_at = now + timedelta(seconds=expires_in - 60)  # 60 sec de marge
+                self._token_expires_at = now + timedelta(seconds=expires_in - 60)  # 60 sec margin
                 
             except Exception as e:
-                raise AuthenticationError(f"Erreur d'authentification MTN: {str(e)}")
+                raise AuthenticationError(f"MTN authentication error: {str(e)}")
         
         return self._auth_token
     
@@ -100,30 +100,30 @@ class MTNIntegrator(BaseAdapter):
         metadata: Optional[Dict[str, Any]] = None
     ) -> PaymentResponse:
         """
-        Envoie une demande de paiement MTN Mobile Money.
+        Sends an MTN Mobile Money payment request.
         
         Args:
-            amount: Montant à payer
-            phone_number: Numéro de téléphone du client (format international)
-            currency: Devise du paiement
-            reference: Référence unique pour le paiement
-            customer_info: Informations supplémentaires sur le client
-            metadata: Métadonnées personnalisées
+            amount: Amount to pay
+            phone_number: Customer phone number (international format)
+            currency: Payment currency
+            reference: Unique reference for the payment
+            customer_info: Additional customer information
+            metadata: Custom metadata
             
         Returns:
-            PaymentResponse: Réponse de la demande de paiement
+            PaymentResponse: Payment request response
         """
-        # S'assurer d'avoir un token valide
+        # Ensure we have a valid token
         auth_token = await self._ensure_auth_token()
         
-        # Formater le numéro de téléphone (retirer +, espaces, etc.)
+        # Format phone number (remove +, spaces, etc.)
         clean_phone = phone_number.replace("+", "").replace(" ", "")
         
-        # Générer un UUID pour la transaction
+        # Generate UUID for transaction
         transaction_id = str(uuid.uuid4())
         external_id = reference or str(uuid.uuid4())
         
-        # Préparer la requête
+        # Prepare request
         payload = {
             "amount": str(amount),
             "currency": currency.value,
@@ -132,16 +132,16 @@ class MTNIntegrator(BaseAdapter):
                 "partyIdType": "MSISDN",
                 "partyId": clean_phone
             },
-            "payerMessage": "Paiement via EasySwitch",
-            "payeeNote": "Paiement via EasySwitch"
+            "payerMessage": "Payment via EasySwitch",
+            "payeeNote": "Payment via EasySwitch"
         }
         
-        # Ajouter les métadonnées si fournies
+        # Add metadata if provided
         if metadata:
             payload["metadata"] = metadata
         
         try:
-            # Effectuer la requête de paiement
+            # Perform payment request
             response = await self.http_client.post(
                 f"collection/v1_0/requesttopay",
                 json_data=payload,
@@ -152,8 +152,8 @@ class MTNIntegrator(BaseAdapter):
                 }
             )
             
-            # MTN renvoie généralement un 202 Accepted sans corps de réponse
-            # Il faut vérifier le statut séparément
+            # MTN usually returns a 202 Accepted without response body
+            # Status must be checked separately
             payment_response = PaymentResponse(
                 transaction_id=transaction_id,
                 provider=Provider.MTN,
@@ -171,9 +171,9 @@ class MTNIntegrator(BaseAdapter):
             return payment_response
             
         except APIError as e:
-            # Gérer les erreurs spécifiques à MTN
+            # Handle MTN-specific errors
             raise APIError(
-                message=f"Erreur MTN lors de la demande de paiement: {str(e)}",
+                message=f"MTN error during payment request: {str(e)}",
                 status_code=e.status_code,
                 provider="mtn",
                 raw_response=e.raw_response
@@ -181,19 +181,19 @@ class MTNIntegrator(BaseAdapter):
     
     async def check_status(self, transaction_id: str) -> TransactionStatus:
         """
-        Vérifie le statut d'une transaction MTN.
+        Checks the status of an MTN transaction.
         
         Args:
-            transaction_id: Identifiant de la transaction
+            transaction_id: Transaction identifier
             
         Returns:
-            TransactionStatus: Statut actuel de la transaction
+            TransactionStatus: Current transaction status
         """
-        # S'assurer d'avoir un token valide
+        # Ensure we have a valid token
         auth_token = await self._ensure_auth_token()
         
         try:
-            # Effectuer la requête de vérification
+            # Perform verification request
             response = await self.http_client.get(
                 f"collection/v1_0/requesttopay/{transaction_id}",
                 headers={
@@ -201,7 +201,7 @@ class MTNIntegrator(BaseAdapter):
                 }
             )
             
-            # Mapper le statut MTN à notre enum TransactionStatus
+            # Map MTN status to our TransactionStatus enum
             mtn_status = response.get("status", "").lower()
             status_mapping = {
                 "pending": TransactionStatus.PENDING,
@@ -217,10 +217,10 @@ class MTNIntegrator(BaseAdapter):
             
         except APIError as e:
             if e.status_code == 404:
-                raise TransactionNotFoundError(f"Transaction MTN non trouvée: {transaction_id}")
+                raise TransactionNotFoundError(f"MTN transaction not found: {transaction_id}")
             
             raise APIError(
-                message=f"Erreur MTN lors de la vérification du statut: {str(e)}",
+                message=f"MTN error during status check: {str(e)}",
                 status_code=e.status_code,
                 provider="mtn",
                 raw_response=e.raw_response
@@ -228,16 +228,16 @@ class MTNIntegrator(BaseAdapter):
     
     async def cancel_transaction(self, transaction_id: str) -> bool:
         """
-        Annule une transaction MTN si possible.
+        Cancels an MTN transaction if possible.
         
         Args:
-            transaction_id: Identifiant de la transaction
+            transaction_id: Transaction identifier
             
         Returns:
-            bool: True si l'annulation a réussi, False sinon
+            bool: True if cancellation succeeded, False otherwise
         """
-        # MTN ne supporte pas l'annulation via API
-        raise UnsupportedOperationError("L'annulation de transaction n'est pas prise en charge par MTN Mobile Money")
+        # MTN doesn't support cancellation via API
+        raise UnsupportedOperationError("Transaction cancellation is not supported by MTN Mobile Money")
     
     async def refund(
         self,
@@ -246,28 +246,28 @@ class MTNIntegrator(BaseAdapter):
         reason: Optional[str] = None
     ) -> PaymentResponse:
         """
-        Effectue un remboursement pour une transaction MTN.
+        Performs a refund for an MTN transaction.
         
         Args:
-            transaction_id: Identifiant de la transaction
-            amount: Montant à rembourser (si None, rembourse le montant total)
-            reason: Raison du remboursement
+            transaction_id: Transaction identifier
+            amount: Amount to refund (if None, refunds the total amount)
+            reason: Refund reason
             
         Returns:
-            PaymentResponse: Réponse de la demande de remboursement
+            PaymentResponse: Refund request response
         """
-        # S'assurer d'avoir un token valide
+        # Ensure we have a valid token
         auth_token = await self._ensure_auth_token()
         
-        # Vérifier d'abord le statut de la transaction initiale
+        # First check the status of the initial transaction
         status = await self.check_status(transaction_id)
         if status != TransactionStatus.SUCCESSFUL:
             raise APIError(
-                message=f"Impossible de rembourser une transaction non réussie (statut: {status})",
+                message=f"Cannot refund an unsuccessful transaction (status: {status})",
                 provider="mtn"
             )
         
-        # Récupérer les détails de la transaction pour connaître le montant initial
+        # Retrieve transaction details to know the initial amount
         try:
             response = await self.http_client.get(
                 f"collection/v1_0/requesttopay/{transaction_id}",
@@ -284,12 +284,12 @@ class MTNIntegrator(BaseAdapter):
                 amount = original_amount
             
             if amount > original_amount:
-                raise ValueError(f"Le montant du remboursement ({amount}) ne peut pas dépasser le montant initial ({original_amount})")
+                raise ValueError(f"Refund amount ({amount}) cannot exceed initial amount ({original_amount})")
             
-            # Créer un ID pour le remboursement
+            # Create ID for refund
             refund_id = str(uuid.uuid4())
             
-            # Préparer la requête de remboursement
+            # Prepare refund request
             payload = {
                 "amount": str(amount),
                 "currency": currency.value,
@@ -298,11 +298,11 @@ class MTNIntegrator(BaseAdapter):
                     "partyIdType": "MSISDN",
                     "partyId": payer_id
                 },
-                "payerMessage": reason or "Remboursement via EasySwitch",
-                "payeeNote": reason or "Remboursement via EasySwitch"
+                "payerMessage": reason or "Refund via EasySwitch",
+                "payeeNote": reason or "Refund via EasySwitch"
             }
             
-            # Effectuer la requête de remboursement
+            # Perform refund request
             await self.http_client.post(
                 "disbursement/v1_0/transfer",
                 json_data=payload,
@@ -326,10 +326,10 @@ class MTNIntegrator(BaseAdapter):
             
         except APIError as e:
             if e.status_code == 404:
-                raise TransactionNotFoundError(f"Transaction MTN non trouvée: {transaction_id}")
+                raise TransactionNotFoundError(f"MTN transaction not found: {transaction_id}")
             
             raise APIError(
-                message=f"Erreur MTN lors du remboursement: {str(e)}",
+                message=f"MTN error during refund: {str(e)}",
                 status_code=e.status_code,
                 provider="mtn",
                 raw_response=e.raw_response
@@ -337,21 +337,21 @@ class MTNIntegrator(BaseAdapter):
     
     async def validate_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> bool:
         """
-        Valide un webhook entrant de MTN.
+        Validates an incoming MTN webhook.
         
         Args:
-            payload: Contenu du webhook
-            headers: En-têtes de la requête
+            payload: Webhook content
+            headers: Request headers
             
         Returns:
-            bool: True si le webhook est valide, False sinon
+            bool: True if webhook is valid, False otherwise
         """
-        # MTN utilise généralement une validation basée sur le token
+        # MTN usually uses token-based validation
         notification_token = headers.get("X-Notification-Token")
         if not notification_token:
             return False
         
-        # Vérifier la signature (exemple simplifié)
+        # Verify signature (simplified example)
         expected_signature = hmac.new(
             self.api_secret.encode(),
             json.dumps(payload).encode(),
@@ -362,24 +362,24 @@ class MTNIntegrator(BaseAdapter):
     
     async def parse_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
         """
-        Analyse un webhook MTN et le convertit en format standardisé.
+        Analyzes an MTN webhook and converts it to standardized format.
         
         Args:
-            payload: Contenu du webhook
-            headers: En-têtes de la requête
+            payload: Webhook content
+            headers: Request headers
             
         Returns:
-            Dict[str, Any]: Données du webhook standardisées
+            Dict[str, Any]: Standardized webhook data
         """
-        # Vérifier que le webhook est valide
+        # Verify that the webhook is valid
         if not await self.validate_webhook(payload, headers):
-            raise ValueError("Webhook MTN invalide")
+            raise ValueError("Invalid MTN webhook")
         
-        # Extraire les données importantes
+        # Extract important data
         transaction_id = payload.get("referenceId")
         status = payload.get("status", "").lower()
         
-        # Mapper le statut MTN à notre enum TransactionStatus
+        # Map MTN status to our TransactionStatus enum
         status_mapping = {
             "successful": TransactionStatus.SUCCESSFUL,
             "failed": TransactionStatus.FAILED,

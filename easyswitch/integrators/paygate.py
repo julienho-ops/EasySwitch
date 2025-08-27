@@ -153,7 +153,7 @@ class PayGateAdapter(BaseAdapter):
                 amount=payload["amount"],
                 currency=transaction.currency,
                 reference=response.data.get("tx_reference"),
-                payment_link=None,  # Pas de lien pour la méthode directe
+                payment_link=None,  # No link for direct method
                 transaction_token=None,
                 customer=transaction.customer,
                 raw_response=response.data,

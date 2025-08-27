@@ -1,5 +1,5 @@
 """
-EasySwitch - Client principal pour l'intégration unifiée des APIs mobile money
+EasySwitch - Main client for unified mobile money API integration
 """
 import asyncio
 from pathlib import Path
@@ -295,7 +295,7 @@ class EasySwitch:
             transaction_id: The transaction ID to cancel
             
         Returns:
-            bool: True si l'annulation a réussi, False sinon
+            bool: True if cancellation succeeded, False otherwise
         """
         provider =  provider or self.config.default_provider
         integrator = self._get_integrator(provider)
@@ -340,7 +340,7 @@ class EasySwitch:
         provider: Optional[Provider] = None
     ) -> bool:
         """
-        Valide un événement de webhook.
+        Validates a webhook event.
         
         Args:
             provider: The payment provider to use

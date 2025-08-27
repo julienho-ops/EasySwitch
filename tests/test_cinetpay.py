@@ -12,7 +12,7 @@ from easyswitch.types import (Currency, CustomerInfo, TransactionDetail,
                               TransactionStatus)
 
 
-# Fixtures pour les données de test
+# Test data fixtures
 @pytest.fixture
 def cinetpay_config():
     return {
@@ -65,7 +65,7 @@ async def test_send_payment_success(cinetpay_adapter, sample_transaction):
         
         response = await cinetpay_adapter.send_payment(sample_transaction)
         
-        # Vérifications
+        # Verifications
         assert response.status == TransactionStatus.PENDING
         assert response.payment_link == "https://payment.link"
         assert response.transaction_token == "test_token"

@@ -1001,7 +1001,7 @@ class FedapayAdapter(BaseAdapter):
             id=data.get("id"),
             method=data.get("method"),
             url=data.get("url"),
-            status=str(data.get("status")),  # status peut être int ou str, on force str
+            status=str(data.get("status")),  # status can be int or str, force str
             ip_address=data.get("ip_address"),
             version=data.get("version"),
             provider=Provider.FEDAPAY,

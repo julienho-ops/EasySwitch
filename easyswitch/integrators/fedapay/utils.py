@@ -12,7 +12,7 @@ class FedapayCurrencyMapper:
        
     _id_to_iso = {
         1: "XOF",  # Franc CFA BCEAO
-        2: "GNF",  # Franc guinéen
+        2: "GNF",  # Guinean Franc
         3: "EUR",  # Euro
     }
 
