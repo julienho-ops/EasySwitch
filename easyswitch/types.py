@@ -28,15 +28,15 @@ class Provider(str, Enum):
 class Currency(str, Enum):
     """Available Currencies Choices."""
 
-    XOF = "XOF"  # Franc CFA (BCEAO)
-    XAF = "XAF"  # Franc CFA (BEAC)
-    NGN = "NGN"  # Naira nigérian
-    GHS = "GHS"  # Cedi ghanéen
+    XOF = "XOF"  # CFA Franc (BCEAO)
+    XAF = "XAF"  # CFA Franc (BEAC)
+    NGN = "NGN"  # Nigerian Naira
+    GHS = "GHS"  # Ghanaian Cedi
     EUR = "EUR"  # Euro
-    USD = "USD"  # Dollar américain
-    CDF = "CDF"  # Franc congolais
-    GNF = "GNF"  # Franc guinéen
-    KMF = "KMF"  # Franc comorien
+    USD = "USD"  # US Dollar
+    CDF = "CDF"  # Congolese Franc
+    GNF = "GNF"  # Guinean Franc
+    KMF = "KMF"  # Comorian Franc
 
 
 ####
@@ -56,7 +56,7 @@ class Countries(str, Enum):
 ##      TRANSACTION TYPES
 #####
 class TransactionType(str, Enum):
-    """Types de transaction supportés."""
+    """Supported transaction types."""
 
     PAYMENT = "payment"
     DEPOSIT = "deposit"
