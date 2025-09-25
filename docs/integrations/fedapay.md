@@ -1,0 +1,992 @@
+# FedaPay Integration with EasySwitch
+
+## Overview
+
+FedaPay is an innovative online payment platform designed to meet the needs of freelancers, businesses, e-commerce platforms, non-governmental organizations (NGOs), and government structures. With its intuitive interface and rapid integration capabilities, FedaPay not only facilitates online payment acceptance but also enables deposits to users' Mobile Money accounts. The platform ensures efficient and secure transaction management with smooth financial flow tracking, making payment and deposit operations simple and reliable.
+
+## Prerequisites
+
+Before integrating FedaPay with EasySwitch, ensure you have:
+
+- EasySwitch library is installed. For setup instructions, see [Installation](../getting-started/installation.md).
+- A FedaPay account (create one at [fedapay.com](https://fedapay.com))
+- API keys (test and live) from your FedaPay dashboard
+
+## Supported Countries
+
+FedaPay supports the following countries and payment methods:
+
+| Country | Mobile Money Operators | Card Payments |
+|---------|----------------------|---------------|
+| **Benin** | MTN, Moov, Celtiis, BMO, Coris Money | ✅ |
+| **Togo** | Mixx By Yas, Moov | ✅ |
+| **Guinea** | MTN | ✅ |
+| **Côte d'Ivoire** | MTN, Moov, Wave, Orange | ✅ |
+| **Niger** | Airtel | ✅ |
+| **Senegal** | Wave, Orange, Free Senegal | ✅ |
+| **Mali** | Orange | ✅ |
+| **Burkina Faso** | Moov, Orange | ✅ |
+| **All Regions** | - | Visa/MasterCard |
+
+## Setup
+
+### Basic Configuration
+
+```python
+from easyswitch import (
+    EasySwitch, 
+    Provider,
+    TransactionDetail,
+    PaymentResponse,
+    TransactionStatus,
+    Currency,
+    TransactionType,
+    CustomerInfo
+)
+
+# Prepare FedaPay configuration
+config = {
+    "debug": True,
+    "default_provider": Provider.FEDAPAY,
+    "providers": {
+        Provider.FEDAPAY: {
+            "api_secret": "your_fedapay_secret_key",
+            "callback_url": "your_fedapay_callback_url",
+            "timeout": 60,  # timeout in seconds for HTTP requests
+            "environment": "sandbox",    # 'sandbox' or 'production'
+            "extra": {
+                "webhook_secret": "your_fedapay_webhook_secret",
+            }
+        },
+    }
+}
+        
+# Initialize EasySwitch with FedaPay
+client = EasySwitch.from_dict(config)
+```
+
+### Alternative Configuration Methods
+
+EasySwitch supports multiple configuration methods:
+
+```python
+# 1. From environment variables
+client = EasySwitch.from_env()
+
+# 2. From JSON file
+client = EasySwitch.from_json("config.json")
+
+# 3. From YAML file
+client = EasySwitch.from_yaml("config.yaml")
+
+# 4. From multiple sources (with overrides)
+client = EasySwitch.from_multi_sources(
+    env_file=".env",
+    json_file="overrides.json"
+)
+```
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file or set the following environment variables:
+
+```bash
+# FedaPay Configuration
+FEDAPAY_API_KEY=sk_sandbox_your_api_key_here
+FEDAPAY_ENVIRONMENT=sandbox
+FEDAPAY_WEBHOOK_SECRET=your_webhook_secret_here
+FEDAPAY_CALLBACK_URL=https://your-domain.com/webhook/fedapay
+```
+
+### Authentication
+
+FedaPay uses API key authentication. EasySwitch automaticaly set this for requests. 
+
+```python
+headers = {
+    'Authorization': f'Bearer {api_key}',
+    'Content-Type': 'application/json'
+}
+```
+
+> **Security Note**: Never expose your secret API key in client-side code. Always use environment variables or secure configuration management.
+
+## EasySwitch Methods
+
+EasySwitch provides a unified interface for all payment operations. Here are the main methods available:
+
+### Core Methods
+
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `send_payment(transaction)` | Send a payment transaction | `PaymentResponse` |
+| `check_status(transaction_id, provider)` | Check transaction status | `TransactionStatus` |
+| `validate_webhook(payload, headers, provider)` | Validate webhook signature | `bool` |
+| `parse_webhook(payload, headers, provider)` | Parse webhook into WebhookEvent | `WebhookEvent` |
+
+> **Note**: `cancel_transaction()` and `refund()` are not supported by FedaPay. See [FedaPay Limitations](#4-fedapay-limitations) for alternatives.
+
+### Configuration Methods
+
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `from_env(env_file)` | Initialize from environment variables | `EasySwitch` |
+| `from_json(json_file)` | Initialize from JSON file | `EasySwitch` |
+| `from_yaml(yaml_file)` | Initialize from YAML file | `EasySwitch` |
+| `from_dict(config_dict)` | Initialize from Python dictionary | `EasySwitch` |
+| `from_multi_sources(**sources)` | Initialize from multiple sources | `EasySwitch` |
+
+## API Methods
+
+### 1. Create Payment
+
+Initiate a payment transaction using EasySwitch's `TransactionDetail` class and `send_payment` method.
+
+```python
+# Create a TransactionDetail object
+transaction = TransactionDetail(
+    transaction_id="TXN-123456",  # Unique ID generated by your system
+    provider=Provider.FEDAPAY,
+    amount=1000.0,  # Amount in cents (10 XOF)
+    currency=Currency.XOF,
+    transaction_type=TransactionType.PAYMENT,
+    customer=CustomerInfo(
+        firstname="John",
+        lastname="Doe",
+        email="john.doe@email.com", # FedaPay doesn't support many customer with same email
+        phone_number="+22990123456"
+    ),
+    reason="Product XYZ Purchase",
+    callback_url="https://your-site.com/webhook/fedapay",
+    return_url="https://your-site.com/success",
+    metadata={
+        "order_id": "ORD-12345"  # Optional business identifier
+    }
+)
+
+# Send payment using EasySwitch
+response = client.send_payment(transaction)
+
+# Check response properties
+print(f"Local Transaction ID: {transaction.transaction_id}")  # Your internal ID
+print(f"FedaPay Transaction ID: {response.transaction_id}")   # ID generated by FedaPay
+print(f"Payment URL: {response.payment_link}")
+print(f"Status: {response.status}")
+print(f"Is Successful: {response.is_successful}")
+print(f"Is Pending: {response.is_pending}")
+```
+
+**Response Object (PaymentResponse):**
+```python
+PaymentResponse(
+    transaction_id="txn_1234567890",   # FedaPay transaction ID (not your local one)
+    provider=Provider.FEDAPAY,
+    status=TransactionStatus.PENDING,
+    amount=1000.0,
+    currency=Currency.XOF,
+    payment_link="https://checkout.fedapay.com/...",
+    created_at=datetime(2024, 1, 15, 10, 30, 0),
+    customer=CustomerInfo(...),
+    raw_response={...}  # Raw FedaPay response
+)
+```
+
+⚠️ **Important Notes**
+
+- `transaction_id` in **EasySwitch** = your own internal identifier (must be unique in your system).  
+- `transaction_id` in the **FedaPay response** = the ID generated by FedaPay’s platform.  
+- You can use `metadata` to store business identifiers (`internal_transaction_id`, `order_id`, `invoice_id`, etc.), but be aware that **metadata values may appear on customer-facing invoices generated by FedaPay**.
+
+---
+
+🔄 **ID Mapping Overview**
+
+| Context            | Field Name      | Who Generates It? | Purpose                                                      |
+|--------------------|-----------------|-------------------|--------------------------------------------------------------|
+| EasySwitch (your system) | `transaction_id` | You               | Internal reference to track the transaction in your own DB.   |
+| FedaPay            | `transaction_id` | FedaPay           | Unique identifier in FedaPay’s system (returned after init).  |
+| Metadata           | e.g. `order_id` | You               | Business-specific ID (e.g. Order/Invoice). *Visible on customer invoices.* |
+
+---
+
+✅ **Best Practice**
+
+- Always generate a unique `transaction_id` in your system.  
+- Store **both IDs** (your own + FedaPay’s) for reconciliation.  
+- Use `metadata` for cross-referencing orders, but **avoid sensitive info** since it may be shown to the customer.  
+
+
+### 2. Check Payment Status
+
+Retrieve the current status of a payment transaction using EasySwitch's `check_status` method.
+
+```python
+# Check transaction status
+transaction_id = "txn_1234567890"
+response = client.check_status(transaction_id)
+
+status = response.status
+print(f"Status value: {status}")
+
+# Check specific status types
+if status == TransactionStatus.SUCCESSFUL:
+    print("Payment completed successfully!")
+elif status == TransactionStatus.PENDING:
+    print("Payment is still processing...")
+elif status == TransactionStatus.FAILED:
+    print("Payment failed")
+```
+
+**Response Object (TransactionStatusResponse):**
+```python
+TransactionStatusResponse(
+    transaction_id="txn_1234567890",   # FedaPay transaction ID (not your local one)
+    provider=Provider.FEDAPAY,
+    status=TransactionStatus.PENDING,
+    amount=1000.0,
+    data={...}  # Raw FedaPay's transaction data
+)
+```
+
+**Available TransactionStatus Values:**
+```python
+class TransactionStatus(str, Enum):
+    PENDING = "pending"
+    SUCCESSFUL = "successful"
+    FAILED = "failed"
+    ERROR = "error"
+    CANCELLED = "cancelled"
+    REFUSED = "refused"
+    DECLINED = "declined"
+    EXPIRED = "expired"
+    REFUNDED = "refunded"
+    PROCESSING = "processing"
+    INITIATED = "initiated"
+    UNKNOWN = "unknown"
+    COMPLETED = "completed"
+    TRANSFERRED = "transferred"
+```
+
+### 3. FedaPay Limitations
+
+> **Important**: FedaPay does not support refunds or transaction cancellation through their API. These operations must be handled manually through the FedaPay dashboard or by contacting their support team.
+
+#### Unsupported Operations
+
+| Operation | FedaPay Support | Alternative |
+|-----------|----------------|-------------|
+| **Refunds** | ❌ Not supported | Manual processing via dashboard |
+| **Transaction Cancellation** | ❌ Not supported | Contact FedaPay support |
+| **Partial Refunds** | ❌ Not supported | Manual processing via dashboard |
+
+#### Workarounds
+
+For refunds and cancellations, you can:
+
+1. **Use FedaPay Dashboard**: Log into your FedaPay account and process refunds manually
+2. **Contact Support**: Reach out to FedaPay support for assistance
+3. **Implement Business Logic**: Track refunds in your own system and process them separately
+
+```python
+# Example: Track refunds in your system
+def track_refund(transaction_id: str, amount: float, reason: str):
+    """Track refund in your system (not processed through FedaPay)"""
+    refund_record = {
+        "original_transaction_id": transaction_id,
+        "refund_amount": amount,
+        "reason": reason,
+        "status": "pending_manual_processing",
+        "created_at": datetime.now(),
+        "provider": "fedapay_manual"
+    }
+    # Save to your database
+    # Notify customer
+    # Process through FedaPay dashboard
+    return refund_record
+```
+
+## Webhook Management
+
+EasySwitch provides built-in webhook validation and parsing methods for FedaPay. This ensures secure and standardized webhook handling across all providers.
+
+### EasySwitch Webhook Methods
+
+EasySwitch offers two main webhook methods:
+
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `validate_webhook(payload, headers, provider)` | Validate webhook signature only | `bool` |
+| `parse_webhook(payload, headers, provider)` | Parse webhook into WebhookEvent (calls validate_webhook internally) | `WebhookEvent` |
+
+> **Important**: `parse_webhook()` automatically calls `validate_webhook()` internally, so you don't need to validate separately when using `parse_webhook()`. Use `validate_webhook()` only when you need to check signature validity without parsing the webhook data.
+
+### Webhook Configuration with EasySwitch
+
+Set up your webhook endpoint using EasySwitch's built-in methods:
+
+```python
+from flask import Flask, request, jsonify
+from easyswitch import EasySwitch, Provider, WebhookEvent
+import json
+
+app = Flask(__name__)
+
+# Initialize EasySwitch client
+client = EasySwitch.from_env()  # or your preferred config method
+
+@app.route('/webhook/fedapay', methods=['POST'])
+def handle_fedapay_webhook():
+    try:
+        # Get webhook data
+        payload = request.get_json()
+        headers = dict(request.headers)
+        
+        # Parse webhook using EasySwitch (automatically validates signature)
+        webhook_event = client.parse_webhook(
+            payload=payload,
+            headers=headers,
+            provider=Provider.FEDAPAY
+        )
+        
+        # Process webhook event
+        process_webhook_event(webhook_event)
+        
+        return jsonify({'status': 'success'})
+    
+    except Exception as e:
+        print(f"Webhook processing error: {e}")
+        return jsonify({'error': 'Processing failed'}), 500
+
+def process_webhook_event(webhook_event: WebhookEvent):
+    """Process webhook event using EasySwitch WebhookEvent object"""
+    
+    # Access standardized webhook data
+    event_type = webhook_event.event_type
+    transaction_id = webhook_event.transaction_id
+    status = webhook_event.status
+    amount = webhook_event.amount
+    currency = webhook_event.currency
+    created_at = webhook_event.created_at
+    
+    print(f"Webhook Event: {event_type}")
+    print(f"Transaction ID: {transaction_id}")
+    print(f"Status: {status}")
+    print(f"Amount: {amount} {currency}")
+    
+    # Handle different event types
+    if event_type == "transaction.created":
+        handle_transaction_created(webhook_event)
+    elif event_type == "transaction.updated":
+        handle_transaction_updated(webhook_event)
+    elif event_type == "transaction.paid":
+        handle_transaction_paid(webhook_event)
+    elif event_type == "transaction.canceled":
+        handle_transaction_canceled(webhook_event)
+    else:
+        print(f"Unhandled event type: {event_type}")
+
+def handle_transaction_created(webhook_event: WebhookEvent):
+    """Handle transaction created event"""
+    print(f"New transaction created: {webhook_event.transaction_id}")
+    # Update your database
+    # Send confirmation email
+    # Update order status
+
+def handle_transaction_updated(webhook_event: WebhookEvent):
+    """Handle transaction updated event"""
+    print(f"Transaction updated: {webhook_event.transaction_id}")
+    # Check status and update accordingly
+
+def handle_transaction_paid(webhook_event: WebhookEvent):
+    """Handle transaction paid event"""
+    print(f"Transaction paid: {webhook_event.transaction_id}")
+    # Process successful payment
+    # Update order status
+    # Send confirmation
+
+def handle_transaction_canceled(webhook_event: WebhookEvent):
+    """Handle transaction canceled event"""
+    print(f"Transaction canceled: {webhook_event.transaction_id}")
+    # Handle cancellation
+    # Update order status
+    # Notify customer
+```
+
+### Webhook Events
+
+FedaPay sends the following webhook events that are automatically parsed by EasySwitch:
+
+| Event Type | Description | When It's Sent | EasySwitch Status |
+|------------|-------------|----------------|-------------------|
+| `transaction.created` | Transaction created | When payment is initiated | `PENDING` |
+| `transaction.updated` | Transaction updated | When status changes | Various |
+| `transaction.paid` | Payment completed | When customer completes payment | `SUCCESSFUL` |
+| `transaction.canceled` | Payment canceled | When customer cancels payment | `CANCELLED` |
+
+### WebhookEvent Object
+
+EasySwitch's `WebhookEvent` provides standardized access to webhook data:
+
+```python
+@dataclass
+class WebhookEvent:
+    event_type: str              # e.g., "transaction.paid"
+    provider: str                # "fedapay"
+    transaction_id: str          # Transaction ID
+    status: TransactionStatus    # Normalized status
+    amount: float                # Transaction amount
+    currency: Currency           # Currency (XOF)
+    created_at: datetime         # Event timestamp
+    raw_data: Dict[str, Any]     # Original webhook payload
+    metadata: Dict[str, Any]     # Additional metadata
+```
+
+### Webhook Security
+
+EasySwitch automatically handles webhook signature validation using FedaPay's signature format:
+
+- **Signature Header**: `X-Fedapay-Signature`
+- **Format**: `t=<timestamp>,s=<signature>`
+- **Algorithm**: HMAC-SHA256
+- **Validation**: Automatic via `client.parse_webhook()` (calls `validate_webhook()` internally)
+
+### When to Use Each Method
+
+**Use `parse_webhook()` when:**
+- You want to process the webhook data
+- You need the parsed `WebhookEvent` object
+- You want automatic signature validation
+
+**Use `validate_webhook()` when:**
+- You only need to check signature validity
+- You want to validate before processing
+- You're implementing custom webhook handling logic
+
+### Advanced Webhook Management
+
+EasySwitch also provides methods to manage webhooks through the FedaPay API:
+
+```python
+# Get all webhooks
+webhooks_response = await client._get_integrator(Provider.FEDAPAY).get_all_webhooks()
+print(f"Total webhooks: {len(webhooks_response.webhooks)}")
+
+# Get specific webhook details
+webhook_detail = await client._get_integrator(Provider.FEDAPAY).get_webhook_detail("webhook_id")
+print(f"Webhook URL: {webhook_detail.url}")
+print(f"Webhook enabled: {webhook_detail.enabled}")
+```
+
+## EasySwitch Data Types
+
+### TransactionDetail Class
+
+The `TransactionDetail` class is the core data structure for all payment operations in EasySwitch:
+
+```python
+@dataclass
+class TransactionDetail:
+    transaction_id: str
+    provider: Provider
+    amount: float
+    currency: Currency
+    status: TransactionStatus = TransactionStatus.PENDING
+    transaction_type: TransactionType = TransactionType.PAYMENT
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    customer: Optional[CustomerInfo] = None
+    reference: Optional[str] = None
+    reason: Optional[str] = None
+    callback_url: Optional[str] = None
+    return_url: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    raw_data: Dict[str, Any] = field(default_factory=dict)
+```
+
+### PaymentResponse Class
+
+The `PaymentResponse` class provides standardized response data with helpful properties:
+
+```python
+@dataclass
+class PaymentResponse:
+    transaction_id: str
+    provider: Provider
+    status: TransactionStatus
+    amount: float
+    currency: Currency
+    created_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    reference: Optional[str] = None
+    payment_link: Optional[str] = None
+    transaction_token: Optional[str] = None
+    customer: Optional[CustomerInfo] = None
+    raw_response: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    @property
+    def is_successful(self) -> bool:
+        """Check if the transaction was successful."""
+        return self.status == TransactionStatus.SUCCESSFUL
+    
+    @property
+    def is_pending(self) -> bool:
+        """Check if the transaction is pending."""
+        return self.status in [
+            TransactionStatus.PENDING,
+            TransactionStatus.PROCESSING,
+            TransactionStatus.INITIATED
+        ]
+    
+    @property
+    def is_failed(self) -> bool:
+        """Check if the transaction failed."""
+        return self.status in [
+            TransactionStatus.FAILED,
+            TransactionStatus.CANCELLED,
+            TransactionStatus.EXPIRED
+        ]
+```
+
+### CustomerInfo Class
+
+The `CustomerInfo` class standardizes customer data across all providers:
+
+```python
+@dataclass
+class CustomerInfo:
+    firstname: str
+    lastname: str
+    email: str
+    phone_number: str
+    id: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+```
+
+## Transaction Status Mapping
+
+EasySwitch standardizes transaction statuses across all providers. Here's how FedaPay statuses map to EasySwitch:
+
+| FedaPay Status | EasySwitch Status | Description |
+|----------------|-------------------|-------------|
+| `pending` | `PENDING` | Transaction is being processed |
+| `approved` | `SUCCESSFUL` | Payment completed successfully |
+| `declined` | `FAILED` | Payment was declined |
+| `canceled` | `CANCELLED` | Payment was canceled by user |
+| `refunded` | `REFUNDED` | Payment was refunded |
+
+## Error Handling
+
+Proper error handling is crucial for a robust payment integration. EasySwitch provides specific exception types for different error scenarios:
+
+```python
+from easyswitch.exceptions import (
+    PaymentError,
+    InsufficientFundsError,
+    InvalidPhoneNumberError,
+    NetworkError,
+    AuthenticationError,
+    ValidationError
+)
+
+def process_payment_safely(payment_data):
+    """Process payment with comprehensive error handling"""
+    try:
+            result = client.process_payment(payment_data)
+            return result
+        
+    except InsufficientFundsError:
+            # Customer doesn't have enough funds
+            return {
+                'success': False,
+                'error': 'Insufficient funds',
+                'message': 'Please check your account balance and try again'
+            }
+        
+    except InvalidPhoneNumberError:
+            # Invalid phone number format
+            return {
+                'success': False,
+                'error': 'Invalid phone number',
+                'message': 'Please enter a valid phone number'
+            }
+    
+    except AuthenticationError:
+        # API key issues
+        return {
+            'success': False,
+            'error': 'Authentication failed',
+            'message': 'Please check your API configuration'
+        }
+    
+    except ValidationError as e:
+        # Invalid payment data
+        return {
+            'success': False,
+            'error': 'Validation error',
+            'message': str(e)
+        }
+    
+    except NetworkError:
+            # Network connectivity issues
+            return {
+                'success': False,
+                'error': 'Network error',
+                'message': 'Please check your internet connection and try again'
+            }
+        
+    except PaymentError as e:
+            # General payment error
+            return {
+                'success': False,
+                'error': 'Payment error',
+                'message': str(e)
+            }
+    
+    except Exception as e:
+        # Unexpected error
+        return {
+            'success': False,
+            'error': 'Unexpected error',
+            'message': 'An unexpected error occurred. Please try again later.'
+        }
+```
+
+### Common Error Codes
+
+| Error Code | Description | Solution |
+|------------|-------------|----------|
+| `INSUFFICIENT_FUNDS` | Customer has insufficient balance | Ask customer to add funds |
+| `INVALID_PHONE` | Phone number format is invalid | Validate phone number format |
+| `NETWORK_ERROR` | Network connectivity issue | Retry with exponential backoff |
+| `AUTH_ERROR` | Authentication failed | Check API keys |
+| `VALIDATION_ERROR` | Invalid request data | Validate input parameters |
+| `TIMEOUT` | Request timed out | Implement retry logic |
+
+## Testing
+
+### Test Environment Setup
+
+FedaPay provides a sandbox environment for testing your integration. Use test API keys and test phone numbers to simulate different scenarios.
+
+```python
+# Test configuration
+test_config = {
+    "debug": True,
+    "providers": {
+        Provider.FEDAPAY: {
+            "api_secret": "sk_sandbox_your_test_key_here",
+            "environment": "sandbox",
+            "timeout": 30
+        }
+    }
+}
+
+test_client = EasySwitch.from_dict(test_config)
+```
+
+### Test Phone Numbers
+
+Use these test phone numbers to simulate different payment scenarios:
+
+| Operator | Test Phone Number | Expected Result |
+|----------|------------------|-----------------|
+| MTN Benin | +229 66000001 | Success |
+| MTN Benin | +229 66000000 | Failure |
+| Moov Benin | +229 64000001 | Success |
+| Moov Benin | +229 64000000 | Failure |
+
+### Test Card Numbers
+
+For card payment testing, use these test card numbers:
+
+| Card Type | Number | Expected Result |
+|-----------|--------|-----------------|
+| Visa | 4111111111111111 | Success |
+| Visa | 4242424242424241 | Failure |
+| MasterCard | 5555555555554444 | Success |
+| Visa | 4242424242424242 | Failure |
+
+**Test Card Details:**
+- **Expiry Date**: Any future date (e.g., 12/25)
+- **CVV**: Any 3-digit number (e.g., 123)
+- **Name**: Any name
+
+> **Note**: These test numbers are provided by FedaPay for sandbox testing only. Never use them in production.
+
+### Complete Integration Example
+
+Here's a complete example showing how to integrate FedaPay with EasySwitch using proper data types and error handling:
+
+```python
+from easyswitch import (
+    EasySwitch, Provider, TransactionDetail, 
+    PaymentResponse, TransactionStatus, Currency, 
+    TransactionType, CustomerInfo
+)
+from easyswitch.exceptions import (
+    PaymentError, NetworkError, AuthenticationError,
+    ValidationError, InsufficientFundsError
+)
+import time
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class FedaPayIntegration:
+    def __init__(self, api_key, environment="sandbox"):
+        """Initialize FedaPay integration with EasySwitch"""
+        self.config = {
+            "debug": True,
+            "default_provider": Provider.FEDAPAY,
+            "providers": {
+                Provider.FEDAPAY: {
+                    "api_secret": api_key,
+                    "environment": environment,
+                    "timeout": 60,
+                    "callback_url": "https://your-domain.com/webhook/fedapay",
+                    "return_url": "https://your-domain.com/success"
+                }
+            }
+        }
+        self.client = EasySwitch.from_dict(self.config)
+    
+    def create_payment(self, amount, currency, description, customer_info, order_id=None):
+        """Create a payment transaction using EasySwitch"""
+        try:
+            # Create TransactionDetail object
+            transaction = TransactionDetail(
+                transaction_id="",  # Will be generated
+                provider=Provider.FEDAPAY,
+                amount=amount,
+                currency=currency,
+                transaction_type=TransactionType.PAYMENT,
+                customer=CustomerInfo(
+                    firstname=customer_info["firstname"],
+                    lastname=customer_info["lastname"],
+                    email=customer_info["email"],
+                    phone_number=customer_info["phone_number"]
+                ),
+                metadata={
+                    "description": description,
+                    "order_id": order_id or f"ORD-{int(time.time())}"
+                }
+            )
+            
+            # Send payment using EasySwitch
+            response = self.client.send_payment(transaction)
+            
+            logger.info(f"Payment created: {response.transaction_id}")
+            return {
+                'success': True,
+                'transaction_id': response.transaction_id,
+                'payment_link': response.payment_link,
+                'status': response.status,
+                'response': response
+            }
+            
+        except Exception as e:
+            logger.error(f"Payment creation failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_type': type(e).__name__
+            }
+    
+    def check_payment_status(self, transaction_id):
+        """Check payment status using EasySwitch"""
+        try:
+            status = self.client.check_status(transaction_id)
+            logger.info(f"Payment status: {status}")
+            return {
+                'success': True,
+                'status': status,
+                'status_value': status.value
+            }
+        except Exception as e:
+            logger.error(f"Status check failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_type': type(e).__name__
+            }
+    
+    def handle_webhook(self, payload, headers):
+        """Handle webhook using EasySwitch methods"""
+        try:
+            # Parse webhook (automatically validates signature internally)
+            webhook_event = self.client.parse_webhook(
+                payload=payload,
+                headers=headers
+            )
+            
+            logger.info(f"Webhook processed: {webhook_event.event_type}")
+            return {
+                'success': True,
+                'webhook_event': webhook_event
+            }
+            
+        except Exception as e:
+            logger.error(f"Webhook handling failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'error_type': type(e).__name__
+            }
+
+def main():
+    """Main function demonstrating FedaPay integration with EasySwitch"""
+    # Initialize integration
+    integration = FedaPayIntegration(
+        api_key="sk_sandbox_your_test_key_here",
+        environment="sandbox"
+    )
+    
+    # Test customer data
+    customer = CustomerInfo(
+        firstname="John",
+        lastname="Doe",
+        email="john.doe@example.com",
+        phone_number="+22990000001"  # Test number for success
+    )
+    
+    # Create payment
+    print("Creating payment with EasySwitch...")
+    payment_result = integration.create_payment(
+        amount=2500.0,  # 25 XOF
+        currency=Currency.XOF,
+        description="Test Payment with EasySwitch",
+        customer_info={
+            "firstname": customer.firstname,
+            "lastname": customer.lastname,
+            "email": customer.email,
+            "phone_number": customer.phone_number
+        },
+        order_id="TEST-001"
+    )
+    
+    if payment_result['success']:
+        print(f"✅ Payment created successfully!")
+        print(f"Transaction ID: {payment_result['transaction_id']}")
+        print(f"Payment Link: {payment_result['payment_link']}")
+        print(f"Status: {payment_result['status']}")
+        
+        # Check if response has helpful properties
+        if 'response' in payment_result:
+            response = payment_result['response']
+            print(f"Is Successful: {response.is_successful}")
+            print(f"Is Pending: {response.is_pending}")
+            print(f"Is Failed: {response.is_failed}")
+        
+        # Wait and check status
+        print("\nWaiting 5 seconds before checking status...")
+        time.sleep(5)
+        
+        status_result = integration.check_payment_status(payment_result['transaction_id'])
+        if status_result['success']:
+            print(f"✅ Payment status: {status_result['status']}")
+            print(f"Status value: {status_result['status_value']}")
+        else:
+            print(f"❌ Status check failed: {status_result['error']}")
+    else:
+        print(f"❌ Payment creation failed: {payment_result['error']}")
+        print(f"Error type: {payment_result.get('error_type', 'Unknown')}")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Testing Checklist
+
+Before going live, ensure you've tested:
+
+- [ ] Payment creation with valid data
+- [ ] Payment creation with invalid data
+- [ ] Payment status checking
+- [ ] Webhook validation and parsing
+- [ ] Webhook handling (all event types)
+- [ ] Error handling for all exception types
+- [ ] Different phone number formats
+- [ ] Network timeout scenarios
+- [ ] Authentication with invalid keys
+- [ ] Webhook signature validation
+- [ ] WebhookEvent object parsing
+
+> **Note**: Refund and cancellation testing should be done manually through the FedaPay dashboard as these operations are not supported via API.
+
+## Limits & Considerations
+
+### Transaction Limits
+
+| Country | Operator | Minimum | Maximum |
+|---------|----------|---------|---------|
+| Benin | MTN | 100 XOF | 500,000 XOF |
+| Benin | Moov | 100 XOF | 300,000 XOF |
+| Côte d'Ivoire | Orange | 100 XOF | 1,000,000 XOF |
+| Côte d'Ivoire | MTN | 100 XOF | 500,000 XOF |
+| Togo | Moov | 100 XOF | 300,000 XOF |
+| Senegal | Orange | 100 XOF | 500,000 XOF |
+| Mali | Orange | 100 XOF | 500,000 XOF |
+| Burkina Faso | Orange | 100 XOF | 500,000 XOF |
+
+### Transaction Fees
+
+Transaction fees vary by operator and amount:
+
+- **Mobile Money**: Generally 1-3% of transaction amount
+- **Card Payments**: 2.9% + fixed fee
+- **International Cards**: Additional 1% surcharge
+
+> **Note**: Fees are subject to change. Check the [FedaPay pricing page](https://fedapay.com/pricing) for current rates.
+
+### Processing Times
+
+| Operation | Processing Time |
+|-----------|----------------|
+| **Mobile Money Payments** | 5-30 seconds |
+| **Card Payments** | 1-3 minutes |
+| **Refunds** | 1-3 business days |
+| **Settlements** | 2-7 business days (varies by country) |
+
+### Rate Limits
+
+- **API Requests**: 100 requests per minute per API key
+- **Webhook Retries**: 3 retries with exponential backoff
+- **Concurrent Transactions**: 10 per customer per minute
+
+## Support & Resources
+
+### Official Resources
+
+- **📚 Documentation**: [docs.fedapay.com](https://docs.fedapay.com)
+- **🎛️ Dashboard**: [dashboard.fedapay.com](https://dashboard.fedapay.com)
+- **📊 Status Page**: [status.fedapay.com](https://status.fedapay.com)
+- **💬 Support**: support@fedapay.com
+
+### Community & Help
+
+- **GitHub Issues**: Report bugs and request features
+- **Developer Forum**: Connect with other developers
+- **API Reference**: Complete API documentation
+- **SDK Downloads**: Official libraries for multiple languages
+
+### Getting Help
+
+1. **Check Documentation**: Most questions are answered in the official docs
+2. **Search Issues**: Look for similar problems in GitHub issues
+3. **Contact Support**: Email support@fedapay.com for technical issues
+4. **Community Forum**: Ask questions in the developer community
+
+### Best Practices
+
+- Always test in sandbox before going live
+- Implement proper error handling and retry logic
+- Use webhooks for real-time status updates
+- Keep your API keys secure and rotate them regularly
+- Monitor your integration with proper logging
+- Test with different phone number formats and countries
