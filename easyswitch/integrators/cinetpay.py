@@ -221,7 +221,10 @@ class CinetpayAdapter(BaseAdapter):
             raw_data = payload
         )
     
-    async def send_payment(self, transaction: TransactionDetail) -> PaymentResponse:
+    async def send_payment(
+        self, 
+        transaction: TransactionDetail
+    ) -> PaymentResponse:
         """
         Send a payment request to CinetPay.
         """
