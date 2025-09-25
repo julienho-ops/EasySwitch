@@ -2,14 +2,14 @@
 
 Thank you for your interest in contributing to **EasySwitch**! This guide will help you contribute effectively while maintaining our quality standards.
 
-## 📋 Table of Contents
+<!-- ## 📋 Table of Contents
 - [Prerequisites](#-prerequisites)
 - [Local Setup](#-local-setup)
 - [Contribution Workflow](#-contribution-workflow)
 - [Code Conventions](#-code-conventions)
 - [Testing & Quality](#-testing--quality)
 - [Issue Management](#-issue-management)
-- [Code of Conduct](#-code-of-conduct)
+- [Code of Conduct](#-code-of-conduct) -->
 
 ---
 
@@ -47,14 +47,14 @@ source venv/bin/activate  # Linux/Mac
 .\venv\Scripts\activate   # Windows
 
 # Install dependencies
-uv pip install -e .[dev]
+uv pip install -e .
 ```
 
 **With standard pip:**
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install -e .[dev]
+pip install -e .
 ```
 
 ---

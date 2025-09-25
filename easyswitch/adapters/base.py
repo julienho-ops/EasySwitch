@@ -2,12 +2,11 @@
 EasySwitch - Base Adapter for Payment Integrations
 """
 import abc
-from typing import Any, ClassVar, Dict, List, Optional, Type, Union
+from typing import Any, ClassVar, Dict, List, Optional, Type
 
 from easyswitch.conf import ProviderConfig
 from easyswitch.exceptions import InvalidProviderError
-from easyswitch.types import (ApiCredentials, Currency, CustomerInfo,
-                              PaymentResponse, Provider, TransactionDetail,
+from easyswitch.types import (Currency, PaymentResponse, TransactionDetail,
                               TransactionStatus)
 from easyswitch.utils import USER_AGENT
 from easyswitch.utils.http import HTTPClient
@@ -36,7 +35,7 @@ class AdaptersRegistry:
             nonlocal name
             name = name or adapter.provider_name()
             name = name.upper()
-            if not name in cls._registry.keys():
+            if name not in cls._registry.keys():
                 cls._registry[name] = adapter
                 
             return adapter
