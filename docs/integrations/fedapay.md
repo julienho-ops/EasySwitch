@@ -122,9 +122,9 @@ EasySwitch provides a unified interface for all payment operations. Here are the
 | Method | Description | Returns |
 |--------|-------------|---------|
 | `send_payment(transaction)` | Send a payment transaction | `PaymentResponse` |
-| `check_status(transaction_id, provider)` | Check transaction status | `TransactionStatus` |
-| `validate_webhook(payload, headers, provider)` | Validate webhook signature | `bool` |
-| `parse_webhook(payload, headers, provider)` | Parse webhook into WebhookEvent | `WebhookEvent` |
+| `check_status(transaction_id)` | Check transaction status | `TransactionStatus` |
+| `validate_webhook(payload, headers)` | Validate webhook signature | `bool` |
+| `parse_webhook(payload, headers)` | Parse webhook into WebhookEvent | `WebhookEvent` |
 
 > **Note**: `cancel_transaction()` and `refund()` are not supported by FedaPay. See [FedaPay Limitations](#4-fedapay-limitations) for alternatives.
 
@@ -317,8 +317,8 @@ EasySwitch offers two main webhook methods:
 
 | Method | Description | Returns |
 |--------|-------------|---------|
-| `validate_webhook(payload, headers, provider)` | Validate webhook signature only | `bool` |
-| `parse_webhook(payload, headers, provider)` | Parse webhook into WebhookEvent (calls validate_webhook internally) | `WebhookEvent` |
+| `validate_webhook(payload, headers)` | Validate webhook signature only | `bool` |
+| `parse_webhook(payload, headers)` | Parse webhook into WebhookEvent (calls validate_webhook internally) | `WebhookEvent` |
 
 > **Important**: `parse_webhook()` automatically calls `validate_webhook()` internally, so you don't need to validate separately when using `parse_webhook()`. Use `validate_webhook()` only when you need to check signature validity without parsing the webhook data.
 
@@ -347,7 +347,6 @@ def handle_fedapay_webhook():
         webhook_event = client.parse_webhook(
             payload=payload,
             headers=headers,
-            provider=Provider.FEDAPAY
         )
         
         # Process webhook event
