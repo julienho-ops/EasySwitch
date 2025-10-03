@@ -94,10 +94,10 @@ Create a `.env` file or set the following environment variables:
 
 ```bash
 # FedaPay Configuration
-FEDAPAY_API_KEY=sk_sandbox_your_api_key_here
-FEDAPAY_ENVIRONMENT=sandbox
-FEDAPAY_WEBHOOK_SECRET=your_webhook_secret_here
-FEDAPAY_CALLBACK_URL=https://your-domain.com/webhook/fedapay
+EASYSWITCH_FEDAPAY_SECRET_KEY=sk_sandbox_your_api_secret_here
+EASYSWITCH_FEDAPAY_ENVIRONMENT=sandbox
+EASYSWITCH_FEDAPAY_WEBHOOK_SECRET=your_webhook_secret_here
+EASYSWITCH_FEDAPAY_CALLBACK_URL=https://your-domain.com/webhook/fedapay
 ```
 
 ### Authentication
@@ -106,7 +106,7 @@ FedaPay uses API key authentication. EasySwitch automaticaly set this for reques
 
 ```python
 headers = {
-    'Authorization': f'Bearer {api_key}',
+    'Authorization': f'Bearer {api_secret}',
     'Content-Type': 'application/json'
 }
 ```
@@ -469,12 +469,16 @@ EasySwitch automatically handles webhook signature validation using FedaPay's si
 EasySwitch also provides methods to manage webhooks through the FedaPay API:
 
 ```python
+
+import asyncio
+
 # Get all webhooks
-webhooks_response = await client._get_integrator(Provider.FEDAPAY).get_all_webhooks()
-print(f"Total webhooks: {len(webhooks_response.webhooks)}")
+FedaPay = client._get_integrator(Provider.FEDAPAY)
+all_webhooks_response = asyncio.run(FedaPay.get_all_webhooks())
+print(f"Total Webhooks: {len(webhooks_response.webhooks)}")
 
 # Get specific webhook details
-webhook_detail = await client._get_integrator(Provider.FEDAPAY).get_webhook_detail("webhook_id")
+webhook_detail = asyncio.run(FedaPay.get_webhook_detail("webhook_id"))
 print(f"Webhook URL: {webhook_detail.url}")
 print(f"Webhook enabled: {webhook_detail.enabled}")
 ```
@@ -580,39 +584,31 @@ EasySwitch standardizes transaction statuses across all providers. Here's how Fe
 
 ## Error Handling
 
-Proper error handling is crucial for a robust payment integration. EasySwitch provides specific exception types for different error scenarios:
+Proper error handling is crucial for a robust payment integration. EasySwitch provides specific exception types for common error scenarios, but note that this list is not exhaustive — additional exceptions may occur depending on your configuration, aggregator behavior, or network conditions.
 
 ```python
 from easyswitch.exceptions import (
     PaymentError,
-    InsufficientFundsError,
-    InvalidPhoneNumberError,
     NetworkError,
     AuthenticationError,
-    ValidationError
+    ValidationError,
+    ConfigurationError,
+    InvalidRequestError
 )
 
-def process_payment_safely(payment_data):
+def process_payment_safely(transaction):
     """Process payment with comprehensive error handling"""
     try:
-            result = client.process_payment(payment_data)
-            return result
+        result = client.send_payment(transaction)
+        return result
         
-    except InsufficientFundsError:
-            # Customer doesn't have enough funds
-            return {
-                'success': False,
-                'error': 'Insufficient funds',
-                'message': 'Please check your account balance and try again'
-            }
-        
-    except InvalidPhoneNumberError:
-            # Invalid phone number format
-            return {
-                'success': False,
-                'error': 'Invalid phone number',
-                'message': 'Please enter a valid phone number'
-            }
+    except ValidationError as e:
+        # Invalid payment data
+        return {
+            'success': False,
+            'error': 'Validation error',
+            'message': str(e)
+        }
     
     except AuthenticationError:
         # API key issues
@@ -622,29 +618,37 @@ def process_payment_safely(payment_data):
             'message': 'Please check your API configuration'
         }
     
-    except ValidationError as e:
-        # Invalid payment data
+    except ConfigurationError:
+        # Configuration issues
         return {
             'success': False,
-            'error': 'Validation error',
-            'message': str(e)
+            'error': 'Configuration error',
+            'message': 'Please check your SDK configuration'
         }
     
     except NetworkError:
-            # Network connectivity issues
-            return {
-                'success': False,
-                'error': 'Network error',
-                'message': 'Please check your internet connection and try again'
-            }
+        # Network connectivity issues
+        return {
+            'success': False,
+            'error': 'Network error',
+            'message': 'Please check your internet connection and try again'
+        }
         
     except PaymentError as e:
-            # General payment error
-            return {
-                'success': False,
-                'error': 'Payment error',
-                'message': str(e)
-            }
+        # General payment error
+        return {
+            'success': False,
+            'error': 'Payment error',
+            'message': str(e)
+        }
+    
+    except InvalidRequestError as e:
+        # Invalid request format
+        return {
+            'success': False,
+            'error': 'Invalid request',
+            'message': str(e)
+        }
     
     except Exception as e:
         # Unexpected error
@@ -655,16 +659,13 @@ def process_payment_safely(payment_data):
         }
 ```
 
-### Common Error Codes
+🔎 **Note**
 
-| Error Code | Description | Solution |
-|------------|-------------|----------|
-| `INSUFFICIENT_FUNDS` | Customer has insufficient balance | Ask customer to add funds |
-| `INVALID_PHONE` | Phone number format is invalid | Validate phone number format |
-| `NETWORK_ERROR` | Network connectivity issue | Retry with exponential backoff |
-| `AUTH_ERROR` | Authentication failed | Check API keys |
-| `VALIDATION_ERROR` | Invalid request data | Validate input parameters |
-| `TIMEOUT` | Request timed out | Implement retry logic |
+The exceptions above cover the most common scenarios.
+Depending on the aggregator and your implementation, additional exceptions may be raised.
+Always include a generic Exception handler to gracefully catch unforeseen errors.
+For production systems, consider logging all errors for easier debugging and monitoring.
+
 
 ## Testing
 
@@ -739,14 +740,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class FedaPayIntegration:
-    def __init__(self, api_key, environment="sandbox"):
+    def __init__(self, api_secret, environment="sandbox"):
         """Initialize FedaPay integration with EasySwitch"""
         self.config = {
             "debug": True,
             "default_provider": Provider.FEDAPAY,
             "providers": {
                 Provider.FEDAPAY: {
-                    "api_secret": api_key,
+                    "api_secret": api_secret,
                     "environment": environment,
                     "timeout": 60,
                     "callback_url": "https://your-domain.com/webhook/fedapay",
@@ -756,25 +757,28 @@ class FedaPayIntegration:
         }
         self.client = EasySwitch.from_dict(self.config)
     
-    def create_payment(self, amount, currency, description, customer_info, order_id=None):
+    def create_payment(
+        self, 
+        amount: float, 
+        currency: Currency, 
+        reason: str, 
+        customer: CustomerInfo, 
+        order_id=None
+    ):
         """Create a payment transaction using EasySwitch"""
         try:
             # Create TransactionDetail object
             transaction = TransactionDetail(
-                transaction_id="",  # Will be generated
+                transaction_id="TXN-123456",  # Will be generated
                 provider=Provider.FEDAPAY,
+                status=TransactionStatus.PENDING,
                 amount=amount,
                 currency=currency,
                 transaction_type=TransactionType.PAYMENT,
-                customer=CustomerInfo(
-                    first_name=customer_info["first_name"],
-                    last_name=customer_info["last_name"],
-                    email=customer_info["email"],
-                    phone_number=customer_info["phone_number"]
-                ),
+                customer=customer,
+                reason=reason,
                 metadata={
-                    "description": description,
-                    "order_id": order_id or f"ORD-{int(time.time())}"
+                    "order_id": order_id  # Optional business identifier
                 }
             )
             
@@ -801,12 +805,12 @@ class FedaPayIntegration:
     def check_payment_status(self, transaction_id):
         """Check payment status using EasySwitch"""
         try:
-            status = self.client.check_status(transaction_id)
-            logger.info(f"Payment status: {status}")
+            result = self.client.check_status(transaction_id)
+            logger.info(f"Payment status: {result}")
             return {
                 'success': True,
-                'status': status,
-                'status_value': status.value
+                'status': result,
+                'status_value': status.result
             }
         except Exception as e:
             logger.error(f"Status check failed: {e}")
@@ -843,7 +847,7 @@ def main():
     """Main function demonstrating FedaPay integration with EasySwitch"""
     # Initialize integration
     integration = FedaPayIntegration(
-        api_key="sk_sandbox_your_test_key_here",
+        api_secret="sk_sandbox_your_test_key_here",
         environment="sandbox"
     )
     
@@ -852,22 +856,17 @@ def main():
         first_name="John",
         last_name="Doe",
         email="john.doe@example.com",
-        phone_number="+22990000001"  # Test number for success
+        phone_number="+22990000001"
     )
     
     # Create payment
     print("Creating payment with EasySwitch...")
     payment_result = integration.create_payment(
-        amount=2500.0,  # 25 XOF
+        amount=2500.0,
         currency=Currency.XOF,
-        description="Test Payment with EasySwitch",
-        customer_info={
-            "first_name": customer.first_name,
-            "last_name": customer.last_name,
-            "email": customer.email,
-            "phone_number": customer.phone_number
-        },
-        order_id="TEST-001"
+        reason="Test Payment with EasySwitch",
+        customer=customer,
+        order_id="ORDER-001"
     )
     
     if payment_result['success']:
