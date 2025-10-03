@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ValidationInfo
 
 from easyswitch.exceptions import ConfigurationError
 from easyswitch.types import Currency, Provider
@@ -61,7 +61,7 @@ class BaseConfigModel(BaseModel):
 
     class Config:
         extra = 'forbid'  # Undefined fields are not allowed
-        validate_all = True
+        validate_default = True
         use_enum_values = True
 
 
@@ -127,17 +127,20 @@ class RootConfig(BaseConfigModel):
     default_provider: Optional[Provider] = None
     
     @field_validator('default_provider')
-    def validate_default_provider(cls, v, values):
+    @classmethod
+    def validate_default_provider(cls, v, info: ValidationInfo):
         """Ensure default provider is valid."""
-
+        
         # Ensure default provider is in enabled providers
-        if v is not None and 'providers' in values and v not in values['providers']:
-            raise ValueError(
-                f"Default provider {v} must be in enabled providers"
-            )
+        if v is not None:
+            providers = info.data.get('providers')
+            if providers and v not in providers:
+                raise ValueError(
+                    f"Default provider {v} must be in enabled providers"
+                )
         
         # and in supported Providers
-        if v not in Provider.__members__:
+        if v is not None and v not in Provider.__members__:
             raise ValueError(
                 f"Default provider {v} is not supported"
             )
