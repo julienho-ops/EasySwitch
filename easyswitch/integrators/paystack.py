@@ -4,11 +4,14 @@ EasySwitch - Paystack Integrator
 
 import hmac
 import hashlib
+import json
 from typing import ClassVar, List, Dict, Optional, Any
+from datetime import datetime
 
 from easyswitch.adapters.base import AdaptersRegistry, BaseAdapter
-from easyswitch.types import (Currency, PaymentResponse, 
-                              TransactionDetail,TransactionStatusResponse,)
+from easyswitch.types import (Currency, PaymentResponse, WebhookEvent,
+                              TransactionDetail,TransactionStatusResponse,
+                              CustomerInfo, TransactionStatus)
 from easyswitch.exceptions import  PaymentError,UnsupportedOperationError
 
 
@@ -51,9 +54,21 @@ class PaystackAdapter(BaseAdapter):
         if authorization:
             headers["Authorization"] = f"Bearer {self.config.api_key}"
         return headers
+    
+    def get_normalize_status(self, status: str) -> TransactionStatus:
+        """Normalize Paystack transaction status."""
+        mapping = {
+            "success": TransactionStatus.SUCCESSFUL,
+            "failed": TransactionStatus.FAILED,
+            "abandoned": TransactionStatus.CANCELLED,
+            "pending": TransactionStatus.PENDING,
+            "refund": TransactionStatus.REFUNDED,
+        }
+        return mapping.get(status.lower(), TransactionStatus.UNKNOWN)
 
         # validate_webhook expects raw_body: bytes
     def validate_webhook(self, raw_body: bytes, headers: Dict[str, str]) -> bool:
+        """Validate the authenticity of a Paystack webhook."""
         signature = headers.get("x-paystack-signature")
         secret_key = getattr(self.config, "api_key", None)
         if not signature or not secret_key:
@@ -61,35 +76,55 @@ class PaystackAdapter(BaseAdapter):
 
         computed_sig = hmac.new(secret_key.encode("utf-8"), msg=raw_body, digestmod=hashlib.sha512).hexdigest()
         return hmac.compare_digest(computed_sig, signature)
-
-
-    def parse_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
-        """Parse Paystack webhook into a normalized format."""
-        data = payload.get("data", {})
-        event = payload.get("event")
-
-        return {
-            "transaction_id": data.get("reference"),
-            "provider": self.provider_name(),
-            "status": self.get_normalize_status(data.get("status")),
-            "event": event,
-            "amount": data.get("amount", 0) / 100,
-            "currency": data.get("currency", "NGN"),
-            "customer_email": data.get("customer", {}).get("email"),
-            "raw_data": payload,
-        }
     
-    async def send_payment(self, transaction: TransactionDetail) -> PaymentResponse:
-        """Send a payment initialization request to Paystack."""
-        self.validate_transaction(transaction)
+    def parse_webhook(self, payload: Dict[str, Any], headers: Dict[str, str]) -> WebhookEvent:
+        """Parse and validate a Paystack webhook."""
 
-        payload = {
-            "amount": int(transaction.amount * 100),  # Paystack expects smallest unit
+        # Convert payload to bytes for validation
+        raw_body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+        
+        if not self.validate_webhook(raw_body, headers):
+            raise PaymentError("Invalid webhook signature", raw_response=payload)
+
+        data = payload.get("data", {})
+        event_type = payload.get("event", "unknown_event")
+        transaction_id = data.get("reference")
+        status = self.get_normalize_status(data.get("status"))
+        amount = (data.get("amount") or 0) / 100
+        currency = data.get("currency", "NGN")
+        metadata = data.get("metadata", {}) or {}
+        context = {
+            "customer_email": data.get("customer", {}).get("email"),
+            "authorization": data.get("authorization", {}),
+        }
+
+        return WebhookEvent(
+            event_type=event_type,
+            provider=self.provider_name(),
+            transaction_id=transaction_id,
+            status=status,
+            amount=amount,
+            currency=currency,
+            created_at=datetime.fromtimestamp(data.get("createdAt") / 1000) if data.get("createdAt") else None,
+            raw_data=payload,
+            metadata=metadata,
+            context=context,
+        )
+    
+    def format_transaction(self, transaction: TransactionDetail) -> Dict[str, Any]:
+        """Convert standardized TransactionDetail into Paystack-specific payload."""
+        self.validate_transaction(transaction) 
+        return {
+            "amount": int(transaction.amount * 100),  # Paystack expects kobo
             "email": transaction.customer.email,
             "reference": transaction.reference,
             "callback_url": transaction.callback_url or self.config.callback_url,
             "metadata": transaction.metadata or {},
         }
+        
+    async def send_payment(self, transaction: TransactionDetail) -> PaymentResponse:
+        """Send a payment initialization request to Paystack."""
+        payload = self.format_transaction(transaction)
 
         async with self.get_client() as client:
             response = await client.post(
@@ -181,7 +216,7 @@ class PaystackAdapter(BaseAdapter):
                 raw_response=data,
             )
         
-    async def get_transaction_detail(self, transaction_id: str) -> PaymentResponse:
+    async def get_transaction_detail(self, transaction_id: str) -> TransactionDetail:
         """Retrieve transaction details from Paystack by transaction ID."""
         async with self.get_client() as client:
             response = await client.get(f"/transaction/{transaction_id}", headers=self.get_headers())
@@ -189,15 +224,29 @@ class PaystackAdapter(BaseAdapter):
             data = response.json() if hasattr(response, "json") else response.data
             if response.status in range(200, 300) and data.get("status"):
                 tx = data.get("data", {})
-                return PaymentResponse(
+
+                customer = CustomerInfo(
+                    email=tx.get("customer", {}).get("email"),
+                    phone_number=tx.get("customer", {}).get("phone"),
+                    first_name=tx.get("customer", {}).get("first_name"),
+                    last_name=tx.get("customer", {}).get("last_name"),
+                    metadata=tx.get("customer", {}).get("metadata", {}),
+                )
+
+                return TransactionDetail(
                     transaction_id=str(tx.get("id", transaction_id)),
-                    reference=tx.get("reference"),
                     provider=self.provider_name(),
-                    status=self.get_normalize_status(tx.get("status")),
-                    amount=tx.get("amount", 0) / 100,
+                    amount=(tx.get("amount") or 0) / 100,
                     currency=tx.get("currency", "NGN"),
+                    status=self.get_normalize_status(tx.get("status")),
+                    reference=tx.get("reference"),
+                    callback_url=tx.get("callback_url"),
+                    created_at=datetime.fromtimestamp(tx.get("createdAt") / 1000) if tx.get("createdAt") else datetime.now(),
+                    updated_at=datetime.fromtimestamp(tx.get("updatedAt") / 1000) if tx.get("updatedAt") else None,
+                    completed_at=datetime.fromtimestamp(tx.get("paidAt") / 1000) if tx.get("paidAt") else None,
+                    customer=customer,
                     metadata=tx.get("metadata", {}),
-                    raw_response=tx
+                    raw_data=tx
                 )
 
             raise PaymentError(
