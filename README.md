@@ -402,8 +402,8 @@ Add Support for following Providers:
 - [x] PayGate
 - [x] Fedapay
 - [x] Airtel Money
-- [x] MTN
-- [ ] PayStack
+- [x] PayStack
+- [ ] MTN
 - [ ] Kkiapay
 - [ ] Orange
 - [ ] PayPlus
