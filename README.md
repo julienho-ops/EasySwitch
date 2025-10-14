@@ -13,14 +13,47 @@ Integrating different payment providers usually means learning different APIs, h
 - 🌍 Support local and international aggregators
 
 ## Currently Supported Providers
--  <img src="docs/assets/logo/providers/logo-cinetpay.png" height="60" alt="CinetPay">
--  <img src="docs/assets/logo/providers/logo-semoa.png" height="80" alt="Semoa">
--  <img src="docs/assets/logo/providers/logo-paygate.png" height="60" alt="PayGate" style="margin: 15px 5px;">
--  <img src="docs/assets/logo/providers/logo-fedapay.png" height="60" alt="FedaPay" style="margin: 15px 5px;">
--  <img src="docs/assets/logo/providers/logo-bizao.jpg" height="100" alt="Bizao" >
--  <img src="docs/assets/logo/providers/logo-mtn.png" height="60" alt="MTN" style="margin: 15px 5px;">
--  <img src="docs/assets/logo/providers/logo-paystack.png" height="90" alt="PayStack">
--  <img src="docs/assets/logo/providers/logo-airtel-money.png" height="80" alt="Airtel Money" style="margin: 15px 5px;">
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/assets/logo/providers/logo-cinetpay.png" height="60" alt="CinetPay"><br/>
+      <strong>CinetPay</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/assets/logo/providers/logo-semoa.png" height="60" alt="Semoa"><br/>
+      <strong>Semoa</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/assets/logo/providers/logo-paygate.png" height="60" alt="PayGate"><br/>
+      <strong>PayGate</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/assets/logo/providers/logo-bizao.jpg" height="80" alt="Bizao"><br/>
+      <strong>Bizao</strong>
+    </td>
+    <td align="center">
+      <img src="docs/assets/logo/providers/logo-fedapay.png" height="60" alt="FedaPay"><br/>
+      <strong>FedaPay</strong>
+    </td>
+    <td align="center">
+      <img src="docs/assets/logo/providers/logo-paystack.png" height="60" alt="PayStack"><br/>
+      <strong>PayStack</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/assets/logo/providers/logo-airtel-money.png" height="60" alt="Airtel Money"><br/>
+      <strong>Airtel Money</strong>
+    </td>
+    <td align="center">
+    </td>
+    <td align="center">
+    </td>
+  </tr>
+</table>
 
 ## 🚀 Features
 
@@ -368,9 +401,9 @@ Add Support for following Providers:
 - [x] Semoa
 - [x] PayGate
 - [x] Fedapay
-- [x] PayStack
 - [x] Airtel Money
 - [x] MTN
+- [ ] PayStack
 - [ ] Kkiapay
 - [ ] Orange
 - [ ] PayPlus
