@@ -13,24 +13,14 @@ Integrating different payment providers usually means learning different APIs, h
 - 🌍 Support local and international aggregators
 
 ## Currently Supported Providers
-- <img src = 'https://docs.cinetpay.com/images/logo-new.png' height = 60 >
-- <img src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9eIXxPvwTKAgJYxFO7mR6ZGIrTaK16qFI0UsGnIQg&s' height = 60 >
-- <img src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3sWIPK8p28IQhWbqKpewYYtCHZaAk6O98T4dUiEhp&s' height = 60 ></img>
-- <img src = 'https://www.fedapay.com/wp-content/themes/fedapay_theme/pictures/feda-logo-blue-new.svg' height = 60 >
-- <img src = 'https://bankassurafrik.com/wp-content/uploads/2022/07/telechargement-2.png' height = 60>
-
-<!-- ## Next
-We will add progressively support for following Providers:
-- <img src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3sWIPK8p28IQhWbqKpewYYtCHZaAk6O98T4dUiEhp&s' height = 60 ></img> 
-<span style = 'margin-left:10'></span>
-<img src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQstE0NII74XhnGdDhMDWpA-7uL55uaooz3fn-yjrvl6g&s' height = 60 ></img><span style = 'margin-left:10'></span><img src = 'https://asset.brandfetch.io/idBsplB3mt/idyp_5HZE4.png' height = 55 >
-</img> -->
-
-<!-- - <img src = 'https://bankassurafrik.com/wp-content/uploads/2022/07/telechargement-2.png' height = 60 ></img>
-<span style = 'margin-left:10'></span><img src = 'https://payplus.africa/img/logo.png' height = 60 ></img>
-<span style = 'margin-left:10'></span>
-<img src = 'https://paydunya.com/refont/images/logo/blue_logo.png' height = 60 ></img> -->
-
+-  <img src="docs/assets/logo/providers/logo-cinetpay.png" height="60" alt="CinetPay">
+-  <img src="docs/assets/logo/providers/logo-semoa.png" height="80" alt="Semoa">
+-  <img src="docs/assets/logo/providers/logo-paygate.png" height="60" alt="PayGate" style="margin: 15px 5px;">
+-  <img src="docs/assets/logo/providers/logo-fedapay.png" height="60" alt="FedaPay" style="margin: 15px 5px;">
+-  <img src="docs/assets/logo/providers/logo-bizao.jpg" height="100" alt="Bizao" >
+-  <img src="docs/assets/logo/providers/logo-mtn.png" height="60" alt="MTN" style="margin: 15px 5px;">
+-  <img src="docs/assets/logo/providers/logo-paystack.png" height="90" alt="PayStack">
+-  <img src="docs/assets/logo/providers/logo-airtel-money.png" height="80" alt="Airtel Money" style="margin: 15px 5px;">
 
 ## 🚀 Features
 
@@ -378,8 +368,10 @@ Add Support for following Providers:
 - [x] Semoa
 - [x] PayGate
 - [x] Fedapay
+- [x] PayStack
+- [x] Airtel Money
+- [x] MTN
 - [ ] Kkiapay
-- [ ] MTN
 - [ ] Orange
 - [ ] PayPlus
 - [ ] QOSPAY
