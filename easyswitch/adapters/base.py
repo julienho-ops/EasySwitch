@@ -87,6 +87,9 @@ class BaseAdapter(abc.ABC):
     PRODUCTION_URL: str = ""
     """Production URL for the adapter."""
 
+    ENDPOINTS: Dict[str, str] = {}
+    """API endpoints for the adapter."""
+
     SUPPORTED_CURRENCIES: List[Currency] = []
     """List of supported currencies for the adapter."""
 
