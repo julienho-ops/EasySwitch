@@ -72,6 +72,7 @@ Integrating different payment providers usually means learning different APIs, h
 
 - [Documentation](https://alldotpy.github.io/EasySwitch/) 📚 (under contructions.)
 - [Issue Tracker](https://github.com/AllDotPy/EasySwitch/issues) 🐛
+- [Discord Community](https://discord.gg/Q8ZFsrkt) 💬
 
 ---
 
@@ -418,10 +419,10 @@ MIT License.
 
 ---
 
-## **Community & Support 💬**  
+## **Support**  
 
 For any question, please open a **Github issue**. 
-- [Discord Community](https://discord.gg/Q8ZFsrkt) 💬
+
 
 ---
 
